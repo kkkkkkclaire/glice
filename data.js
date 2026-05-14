@@ -1,0 +1,63 @@
+/* ═══ Glice Action Database ═══ */
+const DEFAULT_ACTIONS = [
+  // 基础滑行 (expanded)
+  { id:'fwd',      zh:'向前滑行', en:'Forward Skating', cat:'basic', emoji:'⛸️' },
+  { id:'bwd',      zh:'向后滑行', en:'Backward Skating', cat:'basic', emoji:'⛸️' },
+  { id:'swz-fwd',  zh:'前葫芦步', en:'Forward Swizzles', cat:'basic', emoji:'🫘' },
+  { id:'swz-bwd',  zh:'后葫芦步', en:'Backward Swizzles', cat:'basic', emoji:'🫘' },
+  { id:'c-fwd',    zh:'前C步', en:'Forward C-Cut', cat:'basic', emoji:'©️' },
+  { id:'c-bwd',    zh:'后C步', en:'Backward C-Cut', cat:'basic', emoji:'©️' },
+  { id:'cross-fl', zh:'前交叉步(左)', en:'Forward Crossover L', cat:'basic', emoji:'🔄' },
+  { id:'cross-fr', zh:'前交叉步(右)', en:'Forward Crossover R', cat:'basic', emoji:'🔄' },
+  { id:'cross-bl', zh:'后交叉步(左)', en:'Backward Crossover L', cat:'basic', emoji:'🔄' },
+  { id:'cross-br', zh:'后交叉步(右)', en:'Backward Crossover R', cat:'basic', emoji:'🔄' },
+  { id:'stop-h',   zh:'急停', en:'Hockey Stop', cat:'basic', emoji:'🛑' },
+  { id:'stop-t',   zh:'T字停', en:'T-Stop', cat:'basic', emoji:'🇹' },
+  { id:'stop-s',   zh:'双脚刹停', en:'Snowplow Stop', cat:'basic', emoji:'❄️' },
+  { id:'glide1',   zh:'单脚滑行', en:'One-Foot Glide', cat:'basic', emoji:'🦶' },
+  { id:'glide-b1', zh:'单脚后滑', en:'One-Foot Back Glide', cat:'basic', emoji:'🦶' },
+  { id:'lunge',    zh:'弓步', en:'Lunge', cat:'basic', emoji:'🏋️' },
+  { id:'dip',      zh:'蹲滑', en:'Dip / Shoot the Duck', cat:'basic', emoji:'🦆' },
+  { id:'sculling', zh:'蛇形步', en:'Sculling', cat:'basic', emoji:'🐍' },
+  // 跳跃
+  { id:'waltz',  zh:'华尔兹跳', en:'Waltz Jump', cat:'jump', emoji:'🎵' },
+  { id:'toe1',   zh:'后外点冰一周跳', en:'Single Toeloop', cat:'jump', emoji:'💫' },
+  { id:'sal1',   zh:'后内一周跳', en:'Single Salchow', cat:'jump', emoji:'🌀' },
+  { id:'loop1',  zh:'后外一周跳', en:'Single Loop', cat:'jump', emoji:'➰' },
+  { id:'flip1',  zh:'后内点冰一周跳', en:'Single Flip', cat:'jump', emoji:'🔃' },
+  { id:'lutz1',  zh:'后外点冰一周跳', en:'Single Lutz', cat:'jump', emoji:'⚡' },
+  { id:'axel1',  zh:'一周半跳', en:'Single Axel', cat:'jump', emoji:'🌟' },
+  { id:'toe2',   zh:'后外点冰两周跳', en:'Double Toeloop', cat:'jump', emoji:'💫' },
+  { id:'sal2',   zh:'后内两周跳', en:'Double Salchow', cat:'jump', emoji:'🌀' },
+  // 旋转
+  { id:'us',      zh:'直立转', en:'Upright Spin', cat:'spin', emoji:'🌪️' },
+  { id:'sit',     zh:'蹲转', en:'Sit Spin', cat:'spin', emoji:'🪑' },
+  { id:'camel',   zh:'燕式转', en:'Camel Spin', cat:'spin', emoji:'🐪' },
+  { id:'bspin',   zh:'反身转', en:'Back Spin', cat:'spin', emoji:'🔄' },
+  { id:'scratch', zh:'直立联合转', en:'Scratch Spin', cat:'spin', emoji:'✨' },
+  { id:'layback', zh:'躬身转', en:'Layback Spin', cat:'spin', emoji:'🌸' },
+  // 步法
+  { id:'3turn',   zh:'三字转体', en:'Three Turn', cat:'step', emoji:'3️⃣' },
+  { id:'mohawk',  zh:'莫霍克步', en:'Mohawk', cat:'step', emoji:'🦅' },
+  { id:'choctaw', zh:'乔克塔步', en:'Choctaw', cat:'step', emoji:'👣' },
+  { id:'rocker',  zh:'摇滚步', en:'Rocker', cat:'step', emoji:'🎸' },
+  { id:'counter', zh:'反摇滚步', en:'Counter', cat:'step', emoji:'↩️' },
+  { id:'bracket', zh:'括弧步', en:'Bracket', cat:'step', emoji:'🔗' },
+  { id:'twizzle', zh:'捻转步', en:'Twizzle', cat:'step', emoji:'🌀' },
+  // 连接动作
+  { id:'spiral',    zh:'燕式滑行', en:'Spiral', cat:'connect', emoji:'🦢' },
+  { id:'ina',       zh:'伊纳鲍尔', en:'Ina Bauer', cat:'connect', emoji:'🎭' },
+  { id:'spread',    zh:'大鹏展翅', en:'Spread Eagle', cat:'connect', emoji:'🦅' },
+  { id:'hydro',     zh:'落蹲滑行', en:'Hydroblading', cat:'connect', emoji:'💧' },
+  { id:'charlotte', zh:'夏洛特螺旋', en:'Charlotte Spiral', cat:'connect', emoji:'🌺' },
+];
+
+const CATEGORIES = [
+  { id:'all', label:'全部' },
+  { id:'basic', label:'基础滑行' },
+  { id:'jump', label:'跳跃' },
+  { id:'spin', label:'旋转' },
+  { id:'step', label:'步法' },
+  { id:'connect', label:'连接动作' },
+  { id:'custom', label:'自定义' },
+];

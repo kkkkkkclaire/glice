@@ -4,11 +4,12 @@
    - Implements cache-first strategy for core resources
    ═══════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'glice-v1';
+const CACHE_NAME = 'glice-v2';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
   '/style.css',
+  '/data.js',
   '/app.js',
   '/manifest.json',
   '/icons/icon-192.png',
