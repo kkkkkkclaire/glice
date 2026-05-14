@@ -1,0 +1,22 @@
+{
+  "name": "Glice - 花样滑冰成长日志",
+  "short_name": "Glice",
+  "description": "专为花样滑冰爱好者设计的技术百科与成长日志",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0B1929",
+  "theme_color": "#0B1929",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
