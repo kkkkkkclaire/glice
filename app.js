@@ -134,7 +134,7 @@ function renderDayDetail() {
   const el=document.getElementById('day-detail');
   const ids=new Set(); checkinData.filter(c=>c.date===selectedDate).forEach(c=>c.actions.forEach(a=>ids.add(a)));
   if(!ids.size){el.innerHTML=`<h4>📅 ${selectedDate}</h4><p style="color:var(--text-muted);font-size:0.78rem">当日暂无练习记录</p>`;return;}
-  const tags=[...ids].map(id=>{const a=findAction(id);return a?`<span class="day-action-tag">${a.emoji} ${a.zh}</span>`:''}).join('');
+  const tags=[...ids].map(id=>{const a=findAction(id);return a?`<span class="day-action-tag">${a.emoji} ${a.zh}<span class="tag-remove" onclick="removeDayAction('${id}')">✕</span></span>`:''}).join('');
   el.innerHTML=`<h4>📅 ${selectedDate} · ${ids.size}个动作</h4><div class="day-action-list">${tags}</div>`;
 }
 
@@ -153,16 +153,40 @@ function renderCheckinPanel() {
 function toggleCheckin(id,btn){
   if(checkinSelected.has(id)){checkinSelected.delete(id);btn.classList.remove('checked');}
   else{checkinSelected.add(id);btn.classList.add('checked');}
+  renderDayDetail_live();
 }
-function removeCheckin(id,btn){checkinSelected.delete(id);btn.classList.remove('checked');}
+function removeCheckin(id,btn){checkinSelected.delete(id);btn.classList.remove('checked');renderDayDetail_live();}
+function removeDayAction(id){
+  checkinSelected.delete(id);
+  // sync chip UI
+  const chip=document.querySelector(`.checkin-chip[data-id="${id}"]`);
+  if(chip) chip.classList.remove('checked');
+  renderDayDetail_live();
+}
+// Live preview of day detail (reflects current checkinSelected)
+function renderDayDetail_live(){
+  const el=document.getElementById('day-detail');
+  if(!checkinSelected.size){el.innerHTML=`<h4>📅 ${selectedDate}</h4><p style="color:var(--text-muted);font-size:0.78rem">当日暂无练习记录</p>`;return;}
+  const tags=[...checkinSelected].map(id=>{const a=findAction(id);return a?`<span class="day-action-tag">${a.emoji} ${a.zh}<span class="tag-remove" onclick="removeDayAction('${id}')">✕</span></span>`:''}).join('');
+  el.innerHTML=`<h4>📅 ${selectedDate} · ${checkinSelected.size}个动作</h4><div class="day-action-list">${tags}</div>`;
+}
 
 async function saveCheckin() {
   if(!checkinSelected.size){toast('请先勾选练习动作');return;}
   const all=await dbGetAll('checkins');
   for(const c of all){if(c.date===selectedDate)await dbDelete('checkins',c.id);}
   await dbPut('checkins',{date:selectedDate,actions:[...checkinSelected]});
-  for(const id of checkinSelected){if(!masteryMap[id]||masteryMap[id]==='unlearned'){masteryMap[id]='learning';await dbPut('mastery',{actionId:id,level:'learning'});}}
+  // Auto-mastery: unlearned→learning on first practice; >=10 days→mastered
+  for(const id of checkinSelected){
+    if(!masteryMap[id]||masteryMap[id]==='unlearned'){masteryMap[id]='learning';await dbPut('mastery',{actionId:id,level:'learning'});}
+  }
   checkinData=await dbGetAll('checkins');
+  // Check if any action reached 10 practice days → auto mastered
+  for(const id of checkinSelected){
+    if(masteryMap[id]!=='mastered' && getActionPracticeDays(id)>=10){
+      masteryMap[id]='mastered';await dbPut('mastery',{actionId:id,level:'mastered'});
+    }
+  }
   toast('✅ 打卡成功！');
   renderCalendar();
 }
@@ -173,7 +197,7 @@ function openDetail(actionId) {
   const a=findAction(actionId); if(!a)return;
   const m=masteryMap[a.id]||'unlearned', td=getActionPracticeDays(a.id), rd=getRecentPracticeDays(a.id);
   const catL=CATEGORIES.find(c=>c.id===a.cat)?.label||'';
-  const medal=td>=100&&rd>0;
+  const medal=td>=10;
   const delBtn=a.custom?`<button class="btn-secondary" style="margin-top:12px;color:#EF5350;border-color:#EF5350" onclick="deleteCustomAction('${a.id}')">删除此自定义动作</button>`:'';
 
   document.getElementById('detail-content').innerHTML=`
@@ -259,24 +283,31 @@ function renderAchievements(){
   const now=new Date(),tm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   const mc=checkinData.filter(c=>c.date.startsWith(tm));
   const md=new Set(mc.map(c=>c.date)).size;
+  // Unique actions practiced this month (count by content, not frequency)
+  const monthlyActions=new Set(); mc.forEach(c=>c.actions.forEach(a=>monthlyActions.add(a)));
   const ac={};mc.forEach(c=>c.actions.forEach(a=>{ac[a]=(ac[a]||0)+1}));
   const top=Object.entries(ac).sort((a,b)=>b[1]-a[1])[0];
   const topA=top?findAction(top[0]):null;
-  const lc=Object.values(masteryMap).filter(v=>v==='learning').length;
+  // New actions learned this month: first practice date is in this month
+  let newLearnCount=0;
+  monthlyActions.forEach(id=>{
+    const allDates=checkinData.filter(c=>c.actions.includes(id)).map(c=>c.date).sort();
+    if(allDates.length>0 && allDates[0].startsWith(tm)) newLearnCount++;
+  });
   const mc2=Object.values(masteryMap).filter(v=>v==='mastered').length;
 
   document.getElementById('report-content').innerHTML=`
     <div class="report-stats">
       <div class="report-stat"><div class="big-num">${md}</div><div class="label">本月上冰天数</div></div>
-      <div class="report-stat"><div class="big-num">${Object.keys(ac).length}</div><div class="label">练习动作数</div></div>
-      <div class="report-stat"><div class="big-num">${lc}</div><div class="label">学习中</div></div>
+      <div class="report-stat"><div class="big-num">${monthlyActions.size}</div><div class="label">练习动作数</div></div>
+      <div class="report-stat"><div class="big-num">${newLearnCount}</div><div class="label">本月新学</div></div>
       <div class="report-stat"><div class="big-num">${mc2}</div><div class="label">已熟练</div></div>
     </div>
-    ${topA?`<p style="text-align:center;margin-top:14px;color:var(--text-secondary);font-size:0.82rem">🏆 本月之星：<strong>${topA.emoji} ${topA.zh}</strong>（${top[1]}次）</p>`:'<p style="text-align:center;margin-top:14px;color:var(--text-muted);font-size:0.78rem">本月暂无练习记录</p>'}`;
+    ${topA?`<p style="text-align:center;margin-top:14px;color:var(--text-secondary);font-size:0.82rem">🏆 本月之星：<strong>${topA.emoji} ${topA.zh}</strong>（${top[1]}天）</p>`:'<p style="text-align:center;margin-top:14px;color:var(--text-muted);font-size:0.78rem">本月暂无练习记录</p>'}`;
 
-  document.getElementById('medal-grid').innerHTML=ACTIONS.slice(0,30).map(a=>{
-    const td=getActionPracticeDays(a.id),rd=getRecentPracticeDays(a.id),earned=td>=100&&rd>0;
-    return `<div class="medal-item ${earned?'earned':''}"><div class="medal-icon">${earned?'🏅':'🔒'}</div><div class="medal-name">${a.zh}</div><div class="medal-progress">${td}/100天</div></div>`;
+  document.getElementById('medal-grid').innerHTML=ACTIONS.map(a=>{
+    const td=getActionPracticeDays(a.id),earned=td>=10;
+    return `<div class="medal-item ${earned?'earned':''}"><div class="medal-icon">${earned?'🏅':'🔒'}</div><div class="medal-name">${a.zh}</div><div class="medal-progress">${td}/10次</div></div>`;
   }).join('');
 }
 

@@ -216,8 +216,21 @@ body::before {
 }
 .checkin-panel h3 {
   font-family: var(--font-display); font-size: 0.95rem; font-weight: 600;
-  margin-bottom: var(--sp-md); display: flex; align-items: center; gap: var(--sp-sm);
+  margin: 0; display: flex; align-items: center; gap: var(--sp-sm);
 }
+.checkin-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: var(--sp-md);
+}
+.btn-save-compact {
+  padding: 6px 18px; border: none; border-radius: var(--r-full);
+  background: linear-gradient(135deg, var(--accent), var(--accent-dim));
+  color: #fff; font-family: var(--font-display); font-weight: 600;
+  font-size: 0.75rem; cursor: pointer; transition: transform 0.15s, box-shadow 0.2s;
+  letter-spacing: 0.02em; white-space: nowrap;
+}
+.btn-save-compact:hover { box-shadow: var(--shadow-glow); }
+.btn-save-compact:active { transform: scale(0.95); }
 .checkin-actions { display: flex; flex-wrap: wrap; gap: var(--sp-sm); max-height: 220px; overflow-y: auto; }
 .checkin-chip {
   display: flex; align-items: center; gap: 5px;
@@ -398,7 +411,14 @@ body::before {
 .day-action-tag {
   padding: 4px 10px; border-radius: var(--r-full);
   background: var(--accent-light); color: var(--accent); font-size: 0.7rem;
+  display: inline-flex; align-items: center; gap: 4px;
 }
+.tag-remove {
+  cursor: pointer; font-size: 0.72rem; opacity: 0.6;
+  margin-left: 2px; font-weight: 700; line-height: 1;
+  transition: opacity 0.15s;
+}
+.tag-remove:hover { opacity: 1; }
 
 /* ─── Toast ─── */
 .toast {

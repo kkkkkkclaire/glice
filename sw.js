@@ -1,10 +1,9 @@
 /* ═══════════════════════════════════════════════════════════
    Glice Service Worker
-   - Caches app shell and static assets for offline use
-   - Implements cache-first strategy for core resources
+   - Network-first strategy: always fetch latest, fallback to cache
    ═══════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'glice-v2';
+const CACHE_NAME = 'glice-v4';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -40,24 +39,24 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-/* ─── Fetch: Cache-first with network fallback ─── */
+/* ─── Fetch: Network-first with cache fallback ─── */
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) return response;
-      return fetch(event.request).then((networkResponse) => {
-        if (networkResponse && networkResponse.status === 200) {
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
-        }
-        return networkResponse;
-      });
-    }).catch(() => {
-      if (event.request.destination === 'document') {
-        return caches.match('/index.html');
+    fetch(event.request).then((networkResponse) => {
+      if (networkResponse && networkResponse.status === 200) {
+        const responseClone = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(event.request, responseClone);
+        });
       }
+      return networkResponse;
+    }).catch(() => {
+      return caches.match(event.request).then((cachedResponse) => {
+        if (cachedResponse) return cachedResponse;
+        if (event.request.destination === 'document') {
+          return caches.match('/index.html');
+        }
+      });
     })
   );
 });
