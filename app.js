@@ -32,6 +32,7 @@ function openDB() {
 }
 
 function dbPut(s, d) { return new Promise((res,rej) => { const t=db.transaction(s,'readwrite'); t.objectStore(s).put(d); t.oncomplete=()=>res(); t.onerror=e=>rej(e); }); }
+function dbAdd(s, d) { return new Promise((res,rej) => { const t=db.transaction(s,'readwrite'); t.objectStore(s).add(d); t.oncomplete=()=>res(); t.onerror=e=>rej(e); }); }
 function dbGetAll(s) { return new Promise((res,rej) => { const t=db.transaction(s,'readonly'); const r=t.objectStore(s).getAll(); r.onsuccess=()=>res(r.result); r.onerror=e=>rej(e); }); }
 function dbDelete(s, k) { return new Promise((res,rej) => { const t=db.transaction(s,'readwrite'); t.objectStore(s).delete(k); t.oncomplete=()=>res(); t.onerror=e=>rej(e); }); }
 
@@ -139,10 +140,17 @@ function renderDayDetail() {
 }
 
 // ─── Checkin with × delete ───
+let justSaved = false;
+
 function renderCheckinPanel() {
   const el=document.getElementById('checkin-actions');
-  checkinSelected.clear();
-  checkinData.filter(c=>c.date===selectedDate).forEach(c=>c.actions.forEach(a=>checkinSelected.add(a)));
+  if (!justSaved) {
+    checkinSelected.clear();
+    checkinData.filter(c=>c.date===selectedDate).forEach(c=>c.actions.forEach(a=>checkinSelected.add(a)));
+  } else {
+    checkinSelected.clear();
+    justSaved = false;
+  }
   el.innerHTML = ACTIONS.map(a=>{
     const ck=checkinSelected.has(a.id)?'checked':'';
     return `<button class="checkin-chip ${ck}" data-id="${a.id}" onclick="toggleCheckin('${a.id}',this)">
@@ -158,12 +166,10 @@ function toggleCheckin(id,btn){
 function removeCheckin(id,btn){checkinSelected.delete(id);btn.classList.remove('checked');renderDayDetail_live();}
 function removeDayAction(id){
   checkinSelected.delete(id);
-  // sync chip UI
   const chip=document.querySelector(`.checkin-chip[data-id="${id}"]`);
   if(chip) chip.classList.remove('checked');
   renderDayDetail_live();
 }
-// Live preview of day detail (reflects current checkinSelected)
 function renderDayDetail_live(){
   const el=document.getElementById('day-detail');
   if(!checkinSelected.size){el.innerHTML=`<h4>📅 ${selectedDate}</h4><p style="color:var(--text-muted);font-size:0.78rem">当日暂无练习记录</p>`;return;}
@@ -173,21 +179,21 @@ function renderDayDetail_live(){
 
 async function saveCheckin() {
   if(!checkinSelected.size){toast('请先勾选练习动作');return;}
+  const savedActions = [...checkinSelected];
   const all=await dbGetAll('checkins');
   for(const c of all){if(c.date===selectedDate)await dbDelete('checkins',c.id);}
-  await dbPut('checkins',{date:selectedDate,actions:[...checkinSelected]});
-  // Auto-mastery: unlearned→learning on first practice; >=10 days→mastered
-  for(const id of checkinSelected){
+  await dbAdd('checkins',{date:selectedDate,actions:savedActions});
+  for(const id of savedActions){
     if(!masteryMap[id]||masteryMap[id]==='unlearned'){masteryMap[id]='learning';await dbPut('mastery',{actionId:id,level:'learning'});}
   }
   checkinData=await dbGetAll('checkins');
-  // Check if any action reached 10 practice days → auto mastered
-  for(const id of checkinSelected){
+  for(const id of savedActions){
     if(masteryMap[id]!=='mastered' && getActionPracticeDays(id)>=10){
       masteryMap[id]='mastered';await dbPut('mastery',{actionId:id,level:'mastered'});
     }
   }
   toast('✅ 打卡成功！');
+  justSaved = true;
   renderCalendar();
 }
 
@@ -257,7 +263,7 @@ async function renderNotes(id){
 async function saveNote(){
   const input=document.getElementById('note-input'),text=input.value.trim();
   if(!text){toast('请输入笔记内容');return;}
-  await dbPut('notes',{actionId:currentDetailAction,text,date:dateStr()});
+  await dbAdd('notes',{actionId:currentDetailAction,text,date:dateStr()});
   notesData=await dbGetAll('notes');input.value='';
   renderNotes(currentDetailAction);toast('📝 笔记已保存');
 }
