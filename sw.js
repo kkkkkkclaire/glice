@@ -3,7 +3,7 @@
    - Network-first strategy: always fetch latest, fallback to cache
    ═══════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'glice-v4';
+const CACHE_NAME = 'glice-v5';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -39,11 +39,15 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-/* ─── Fetch: Network-first with cache fallback ─── */
+/* ─── Fetch: Network-first with robust offline fallback ─── */
 self.addEventListener('fetch', (event) => {
+  // Only handle GET requests
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
     fetch(event.request).then((networkResponse) => {
-      if (networkResponse && networkResponse.status === 200) {
+      // Don't cache opaque responses or non-success
+      if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
         const responseClone = networkResponse.clone();
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(event.request, responseClone);
@@ -51,10 +55,18 @@ self.addEventListener('fetch', (event) => {
       }
       return networkResponse;
     }).catch(() => {
-      return caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) return cachedResponse;
-        if (event.request.destination === 'document') {
-          return caches.match('/index.html');
+      // Offline mode: match cache ignoring search parameters
+      return caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+        // If nothing matches and it's a page request, return index.html
+        if (event.request.mode === 'navigate' || event.request.destination === 'document') {
+          return caches.match('/index.html', { ignoreSearch: true });
+        }
+        // Or if the request is for the root path
+        if (new URL(event.request.url).pathname === '/') {
+          return caches.match('/index.html', { ignoreSearch: true });
         }
       });
     })
