@@ -33,7 +33,19 @@
       <div id="day-detail" class="day-detail"></div>
       <div class="checkin-panel">
         <div class="checkin-header">
-          <h3>⛸️ 今日打卡</h3>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <h3>⛸️ 今日打卡</h3>
+            <select id="ice-duration" class="duration-select" aria-label="上冰时长">
+              <option value="0">无记录</option>
+              <option value="30">30分钟</option>
+              <option value="45">45分钟</option>
+              <option value="60" selected>1小时</option>
+              <option value="90">1.5小时</option>
+              <option value="120">2小时</option>
+              <option value="150">2.5小时</option>
+              <option value="180">3小时及以上</option>
+            </select>
+          </div>
           <button class="btn-save-compact" onclick="saveCheckin()">保存 ✓</button>
         </div>
         <div id="checkin-actions" class="checkin-actions"></div>
@@ -86,6 +98,15 @@
         <h1>🏆 成就</h1>
         <p>你的滑冰荣誉殿堂</p>
       </div>
+      
+      <div class="total-time-card">
+        <div class="total-time-icon">⏱️</div>
+        <div class="total-time-info">
+          <div class="total-time-label">累计上冰总时长</div>
+          <div class="total-time-value" id="total-ice-time">0 小时</div>
+        </div>
+      </div>
+
       <div class="report-card">
         <h3>📊 本月练习报告</h3>
         <div id="report-content"></div>

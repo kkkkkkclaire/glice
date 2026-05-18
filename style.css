@@ -441,7 +441,59 @@ body::before {
 ::-webkit-scrollbar-thumb { background: rgba(59,159,227,0.15); border-radius: 2px; }
 
 /* ─── Utility Classes ─── */
-.mt-panel { margin-top: 16px; }
+.mt-panel{margin-top:24px}
+
+/* Duration Select */
+.duration-select {
+  padding: 4px 8px;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  outline: none;
+  font-family: inherit;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+
+/* Total Time Card */
+.total-time-card {
+  background: linear-gradient(135deg, #7EBEFB 0%, #3B9FE3 100%);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 159, 227, 0.25);
+}
+.total-time-icon {
+  font-size: 2.2rem;
+  background: rgba(255,255,255,0.2);
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+}
+.total-time-info {
+  display: flex;
+  flex-direction: column;
+}
+.total-time-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  margin-bottom: 4px;
+}
+.total-time-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
 .btn-add-action { margin-top: 4px; }
 .medal-wall-title {
   font-family: var(--font-display);

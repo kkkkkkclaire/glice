@@ -133,10 +133,11 @@ function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalend
 
 function renderDayDetail() {
   const el=document.getElementById('day-detail');
-  const ids=new Set(); checkinData.filter(c=>c.date===selectedDate).forEach(c=>c.actions.forEach(a=>ids.add(a)));
-  if(!ids.size){el.innerHTML=`<h4>📅 ${selectedDate}</h4><p style="color:var(--text-muted);font-size:0.78rem">当日暂无练习记录</p>`;return;}
-  const tags=[...ids].map(id=>{const a=findAction(id);return a?`<span class="day-action-tag">${a.emoji} ${a.zh}<span class="tag-remove" onclick="removeDayAction('${id}')">✕</span></span>`:''}).join('');
-  el.innerHTML=`<h4>📅 ${selectedDate} · ${ids.size}个动作</h4><div class="day-action-list">${tags}</div>`;
+  const checkin=checkinData.find(c=>c.date===selectedDate);
+  if(!checkin || !checkin.actions.length){el.innerHTML=`<h4>📅 ${selectedDate}</h4><p style="color:var(--text-muted);font-size:0.78rem">当日暂无练习记录</p>`;return;}
+  const tags=checkin.actions.map(id=>{const a=findAction(id);return a?`<span class="day-action-tag">${a.emoji} ${a.zh}<span class="tag-remove" onclick="removeDayAction('${id}')">✕</span></span>`:''}).join('');
+  let durText = checkin.duration ? ` · ⏱️ ${checkin.duration}分钟` : '';
+  el.innerHTML=`<h4>📅 ${selectedDate} · ${checkin.actions.length}个动作${durText}</h4><div class="day-action-list">${tags}</div>`;
 }
 
 // ─── Checkin with × delete ───
@@ -144,11 +145,19 @@ let justSaved = false;
 
 function renderCheckinPanel() {
   const el=document.getElementById('checkin-actions');
+  const durSelect = document.getElementById('ice-duration');
   if (!justSaved) {
     checkinSelected.clear();
-    checkinData.filter(c=>c.date===selectedDate).forEach(c=>c.actions.forEach(a=>checkinSelected.add(a)));
+    const checkin = checkinData.find(c=>c.date===selectedDate);
+    if(checkin) {
+      checkin.actions.forEach(a=>checkinSelected.add(a));
+      if(durSelect && checkin.duration) durSelect.value = checkin.duration;
+    } else {
+      if(durSelect) durSelect.value = "60";
+    }
   } else {
     checkinSelected.clear();
+    if(durSelect) durSelect.value = "60";
     justSaved = false;
   }
   el.innerHTML = ACTIONS.map(a=>{
@@ -174,15 +183,18 @@ function renderDayDetail_live(){
   const el=document.getElementById('day-detail');
   if(!checkinSelected.size){el.innerHTML=`<h4>📅 ${selectedDate}</h4><p style="color:var(--text-muted);font-size:0.78rem">当日暂无练习记录</p>`;return;}
   const tags=[...checkinSelected].map(id=>{const a=findAction(id);return a?`<span class="day-action-tag">${a.emoji} ${a.zh}<span class="tag-remove" onclick="removeDayAction('${id}')">✕</span></span>`:''}).join('');
-  el.innerHTML=`<h4>📅 ${selectedDate} · ${checkinSelected.size}个动作</h4><div class="day-action-list">${tags}</div>`;
+  const durVal = document.getElementById('ice-duration')?.value || "0";
+  const durText = durVal !== "0" ? ` · ⏱️ ${durVal}分钟` : '';
+  el.innerHTML=`<h4>📅 ${selectedDate} · ${checkinSelected.size}个动作${durText}</h4><div class="day-action-list">${tags}</div>`;
 }
 
 async function saveCheckin() {
   if(!checkinSelected.size){toast('请先勾选练习动作');return;}
+  const durVal = parseInt(document.getElementById('ice-duration')?.value || "0", 10);
   const savedActions = [...checkinSelected];
   const all=await dbGetAll('checkins');
   for(const c of all){if(c.date===selectedDate)await dbDelete('checkins',c.id);}
-  await dbAdd('checkins',{date:selectedDate,actions:savedActions});
+  await dbAdd('checkins',{date:selectedDate,actions:savedActions, duration:durVal});
   for(const id of savedActions){
     if(!masteryMap[id]||masteryMap[id]==='unlearned'){masteryMap[id]='learning';await dbPut('mastery',{actionId:id,level:'learning'});}
   }
@@ -286,15 +298,27 @@ function toggleSpeech(){
 
 // ─── Achievements ───
 function renderAchievements(){
-  const now=new Date(),tm=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const mc=checkinData.filter(c=>c.date.startsWith(tm));
-  const md=new Set(mc.map(c=>c.date)).size;
-  // Unique actions practiced this month (count by content, not frequency)
-  const monthlyActions=new Set(); mc.forEach(c=>c.actions.forEach(a=>monthlyActions.add(a)));
-  const ac={};mc.forEach(c=>c.actions.forEach(a=>{ac[a]=(ac[a]||0)+1}));
+  const monthlyActions=new Set();
+  const tm=dateStr().substring(0,7);
+  let md=0;
+  let monthDuration=0;
+  let totalDuration=0;
+  
+  checkinData.forEach(c=>{
+    const d = c.duration || 0;
+    totalDuration += d;
+    if(c.date.startsWith(tm)){
+      md++;
+      monthDuration += d;
+      c.actions.forEach(a=>monthlyActions.add(a));
+    }
+  });
+
+  const ac={};
+  checkinData.filter(c=>c.date.startsWith(tm)).forEach(c=>c.actions.forEach(a=>{ac[a]=(ac[a]||0)+1}));
   const top=Object.entries(ac).sort((a,b)=>b[1]-a[1])[0];
   const topA=top?findAction(top[0]):null;
-  // New actions learned this month: first practice date is in this month
+  
   let newLearnCount=0;
   monthlyActions.forEach(id=>{
     const allDates=checkinData.filter(c=>c.actions.includes(id)).map(c=>c.date).sort();
@@ -305,11 +329,15 @@ function renderAchievements(){
   document.getElementById('report-content').innerHTML=`
     <div class="report-stats">
       <div class="report-stat"><div class="big-num">${md}</div><div class="label">本月上冰天数</div></div>
-      <div class="report-stat"><div class="big-num">${monthlyActions.size}</div><div class="label">练习动作数</div></div>
+      <div class="report-stat"><div class="big-num">${monthDuration>=60?(monthDuration/60).toFixed(1):monthDuration}</div><div class="label">本月上冰(${monthDuration>=60?'小时':'分钟'})</div></div>
       <div class="report-stat"><div class="big-num">${newLearnCount}</div><div class="label">本月新学</div></div>
       <div class="report-stat"><div class="big-num">${mc2}</div><div class="label">已熟练</div></div>
     </div>
-    ${topA?`<p style="text-align:center;margin-top:14px;color:var(--text-secondary);font-size:0.82rem">🏆 本月之星：<strong>${topA.emoji} ${topA.zh}</strong>（${top[1]}天）</p>`:'<p style="text-align:center;margin-top:14px;color:var(--text-muted);font-size:0.78rem">本月暂无练习记录</p>'}`;
+    ${topA?`<p style="text-align:center;margin-top:14px;color:var(--text-secondary);font-size:0.82rem">🏆 本月之星：<strong>${topA.emoji} ${topA.zh}</strong>（${top[1]}天）</p>`:'<p style="text-align:center;margin-top:14px;color:var(--text-muted);font-size:0.78rem">本月暂无练习记录</p>'}
+  `;
+
+  const totalTimeEl = document.getElementById('total-ice-time');
+  if (totalTimeEl) totalTimeEl.textContent = totalDuration >= 60 ? (totalDuration/60).toFixed(1) + ' 小时' : totalDuration + ' 分钟';
 
   document.getElementById('medal-grid').innerHTML=ACTIONS.map(a=>{
     const td=getActionPracticeDays(a.id),earned=td>=10;
