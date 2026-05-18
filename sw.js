@@ -1,11 +1,7 @@
-/* ═══════════════════════════════════════════════════════════
-   Glice Service Worker - Ultimate Offline Cache
-   ═══════════════════════════════════════════════════════════ */
-
-const CACHE_NAME = 'glice-v9';
+const CACHE_NAME = 'glice-v10';
 const ASSETS = [
   '/',
-  '/index.html', // Add back just in case they land on it
+  '/index.html',
   '/style.css',
   '/data.js',
   '/app.js',
@@ -17,18 +13,15 @@ const ASSETS = [
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(async (cache) => {
-      // Manually fetch and cache to avoid cache.add() throwing on Vercel headers/redirects
-      for (let url of ASSETS) {
-        try {
-          const response = await fetch(url);
-          if (response.ok || response.type === 'opaque') {
-            await cache.put(url, response);
-          }
-        } catch (e) {
-          console.error('SW Cache Error:', url, e);
-        }
-      }
+    caches.open(CACHE_NAME).then((cache) => {
+      return Promise.all(
+        ASSETS.map(url => {
+          return fetch(url).then(response => {
+            if (!response.ok) return;
+            return cache.put(url, response);
+          }).catch(err => console.log('Precache failed for', url, err));
+        })
+      );
     })
   );
 });
@@ -38,8 +31,11 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then(keys => {
       return Promise.all(
-        keys.filter(key => key !== CACHE_NAME && key.startsWith('glice-'))
-            .map(key => caches.delete(key))
+        keys.map(key => {
+          if (key !== CACHE_NAME && key.startsWith('glice-')) {
+            return caches.delete(key);
+          }
+        })
       );
     })
   );
@@ -47,34 +43,35 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  const url = new URL(event.request.url);
+  if (!url.protocol.startsWith('http')) return;
 
   event.respondWith(
-    caches.match(event.request, { ignoreSearch: true }).then((cachedRes) => {
-      // 1. CACHE FIRST: If it's in the cache, return it instantly!
-      if (cachedRes) {
-        // Optionally update cache in background
-        fetch(event.request).then(netRes => {
-          if (netRes && netRes.ok) {
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, netRes));
-          }
-        }).catch(()=>{});
-        
-        return cachedRes;
-      }
-
-      // 2. NETWORK FALLBACK: If not in cache, go to network
-      return fetch(event.request).then((netRes) => {
-        if (netRes && netRes.ok) {
-          const clone = netRes.clone();
+    caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
+      const fetchPromise = fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.ok) {
+          const clone = networkResponse.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, clone));
         }
-        return netRes;
-      }).catch((err) => {
-        // 3. OFFLINE FALLBACK: If network fails and it's a page, load / from cache
-        if (event.request.mode === 'navigate' || event.request.destination === 'document') {
-          return caches.match('/', { ignoreSearch: true });
+        return networkResponse;
+      }).catch((e) => {
+        console.log('Network fetch failed', e);
+      });
+
+      // 1. Stale-while-revalidate: return cache instantly, let network update cache in background
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      // 2. If not in cache, wait for network
+      return fetchPromise.then(response => {
+        if (response) return response;
+        // 3. If network fails and we have no cache, fallback to / for navigation requests
+        if (event.request.mode === 'navigate') {
+          return caches.match('/', { ignoreSearch: true })
+            .then(res => res || caches.match('/index.html', { ignoreSearch: true }));
         }
-        throw err;
+        return new Response('', { status: 408, statusText: 'Request Timeout' });
       });
     })
   );
