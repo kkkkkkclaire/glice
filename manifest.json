@@ -2,7 +2,7 @@
   "name": "Glice - 花样滑冰成长日志",
   "short_name": "Glice",
   "description": "专为花样滑冰爱好者设计的技术百科与成长日志",
-  "start_url": "/index.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#F4F8FB",
   "theme_color": "#F4F8FB",

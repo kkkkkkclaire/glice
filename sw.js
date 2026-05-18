@@ -3,16 +3,16 @@
    - Network-first strategy: always fetch latest, fallback to cache
    ═══════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'glice-v5';
+const CACHE_NAME = 'glice-v6';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/data.js',
-  '/app.js',
-  '/manifest.json',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png'
+  './',
+  './index.html',
+  './style.css',
+  './data.js',
+  './app.js',
+  './manifest.json',
+  './icons/icon-192.png',
+  './icons/icon-512.png'
 ];
 
 /* ─── Install: Pre-cache core app shell ─── */
@@ -62,11 +62,11 @@ self.addEventListener('fetch', (event) => {
         }
         // If nothing matches and it's a page request, return index.html
         if (event.request.mode === 'navigate' || event.request.destination === 'document') {
-          return caches.match('/index.html', { ignoreSearch: true });
+          return caches.match('./index.html', { ignoreSearch: true });
         }
         // Or if the request is for the root path
-        if (new URL(event.request.url).pathname === '/') {
-          return caches.match('/index.html', { ignoreSearch: true });
+        if (new URL(event.request.url).pathname.endsWith('/')) {
+          return caches.match('./index.html', { ignoreSearch: true });
         }
       });
     })
