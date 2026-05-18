@@ -329,7 +329,7 @@ function renderAchievements(){
   document.getElementById('report-content').innerHTML=`
     <div class="report-stats">
       <div class="report-stat"><div class="big-num">${md}</div><div class="label">本月上冰天数</div></div>
-      <div class="report-stat"><div class="big-num">${monthDuration>=60?(monthDuration/60).toFixed(1):monthDuration}</div><div class="label">本月上冰(${monthDuration>=60?'小时':'分钟'})</div></div>
+      <div class="report-stat"><div class="big-num">${(monthDuration/60).toFixed(1)}</div><div class="label">本月上冰(小时)</div></div>
       <div class="report-stat"><div class="big-num">${newLearnCount}</div><div class="label">本月新学</div></div>
       <div class="report-stat"><div class="big-num">${mc2}</div><div class="label">已熟练</div></div>
     </div>
@@ -337,7 +337,7 @@ function renderAchievements(){
   `;
 
   const totalTimeEl = document.getElementById('total-ice-time');
-  if (totalTimeEl) totalTimeEl.textContent = totalDuration >= 60 ? (totalDuration/60).toFixed(1) + ' 小时' : totalDuration + ' 分钟';
+  if (totalTimeEl) totalTimeEl.textContent = (totalDuration/60).toFixed(1) + ' 小时';
 
   document.getElementById('medal-grid').innerHTML=ACTIONS.map(a=>{
     const td=getActionPracticeDays(a.id),earned=td>=10;
