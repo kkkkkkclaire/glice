@@ -3,10 +3,9 @@
    - Network-first strategy: always fetch latest, fallback to cache
    ═══════════════════════════════════════════════════════════ */
 
-const CACHE_NAME = 'glice-v7';
+const CACHE_NAME = 'glice-v8';
 const ASSETS_TO_CACHE = [
   '/',
-  '/index.html',
   '/style.css',
   '/data.js',
   '/app.js',
@@ -68,9 +67,9 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse;
       }
       
-      // 2. If it's a page request and not in cache, fallback to /index.html
+      // 2. If it's a page request and not in cache, fallback to /
       if (event.request.mode === 'navigate' || event.request.destination === 'document') {
-        return caches.match('/index.html', { ignoreSearch: true }).then(res => {
+        return caches.match('/', { ignoreSearch: true }).then(res => {
           return res || fetchPromise;
         });
       }
