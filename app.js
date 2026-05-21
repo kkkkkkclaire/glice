@@ -333,7 +333,7 @@ function renderAchievements(){
       <div class="report-stat"><div class="big-num">${newLearnCount}</div><div class="label">本月新学</div></div>
       <div class="report-stat"><div class="big-num">${mc2}</div><div class="label">已熟练</div></div>
     </div>
-    ${topA?`<p style="text-align:center;margin-top:14px;color:var(--text-secondary);font-size:0.82rem">🏆 本月之星：<strong>${topA.emoji} ${topA.zh}</strong>（${top[1]}天）</p>`:'<p style="text-align:center;margin-top:14px;color:var(--text-muted);font-size:0.78rem">本月暂无练习记录</p>'}
+    ${topA?`<p style="text-align:center;margin-top:14px;color:var(--text-secondary);font-size:0.82rem">🏆 本月之星：<strong>${topA.emoji} ${topA.zh}</strong>（${top[1]}次）</p>`:'<p style="text-align:center;margin-top:14px;color:var(--text-muted);font-size:0.78rem">本月暂无练习记录</p>'}
   `;
 
   const totalTimeEl = document.getElementById('total-ice-time');
