@@ -7,6 +7,12 @@ let calYear, calMonth, selectedDate, currentDetailAction = null;
 let masteryMap = {}, checkinData = [], notesData = [], customActions = [];
 let checkinSelected = new Set();
 
+// ─── Duration Picker State ───
+let pickerHour = 1, pickerMinute = 0;
+const PICKER_ITEM_H = 44;
+const HOUR_VALUES = [0, 1, 2, 3, 4, 5];
+const MINUTE_VALUES = Array.from({length: 60}, (_, i) => i);
+
 // ─── IndexedDB ───
 const DB_NAME = 'GliceDB', DB_VER = 2;
 
@@ -42,6 +48,17 @@ function toast(msg) { const el=document.getElementById('toast'); el.textContent=
 function getActionPracticeDays(id) { const s=new Set(); checkinData.forEach(c=>{if(c.actions.includes(id))s.add(c.date)}); return s.size; }
 function getRecentPracticeDays(id, days=30) { const now=new Date(); let c=0; checkinData.forEach(r=>{if(!r.actions.includes(id))return; if((now-new Date(r.date))/864e5<=days)c++;}); return c; }
 function findAction(id) { return ACTIONS.find(a=>a.id===id); }
+function formatDuration(minutes) {
+  const h = Math.floor(minutes / 60), m = minutes % 60;
+  if (h === 0 && m === 0) return '0分钟';
+  if (h === 0) return `${m}分钟`;
+  if (m === 0) return `${h}小时`;
+  return `${h}小时 ${String(m).padStart(2,'0')}分`;
+}
+function updateDurationDisplay() {
+  const el = document.getElementById('dur-text');
+  if (el) el.textContent = formatDuration(pickerHour * 60 + pickerMinute);
+}
 
 // ─── Navigation ───
 function switchPage(page) {
@@ -136,7 +153,7 @@ function renderDayDetail() {
   const checkin=checkinData.find(c=>c.date===selectedDate);
   if(!checkin || !checkin.actions.length){el.innerHTML=`<h4>📅 ${selectedDate}</h4><p style="color:var(--text-muted);font-size:0.78rem">当日暂无练习记录</p>`;return;}
   const tags=checkin.actions.map(id=>{const a=findAction(id);return a?`<span class="day-action-tag">${a.emoji} ${a.zh}<span class="tag-remove" onclick="removeDayAction('${id}')">✕</span></span>`:''}).join('');
-  let durText = checkin.duration ? ` · ⏱️ ${checkin.duration}分钟` : '';
+  let durText = checkin.duration ? ` · ⏱️ ${formatDuration(checkin.duration)}` : '';
   el.innerHTML=`<h4>📅 ${selectedDate} · ${checkin.actions.length}个动作${durText}</h4><div class="day-action-list">${tags}</div>`;
 }
 
@@ -145,21 +162,26 @@ let justSaved = false;
 
 function renderCheckinPanel() {
   const el=document.getElementById('checkin-actions');
-  const durSelect = document.getElementById('ice-duration');
   if (!justSaved) {
     checkinSelected.clear();
     const checkin = checkinData.find(c=>c.date===selectedDate);
     if(checkin) {
       checkin.actions.forEach(a=>checkinSelected.add(a));
-      if(durSelect && checkin.duration) durSelect.value = checkin.duration;
+      if(checkin.duration) {
+        pickerHour = Math.floor(checkin.duration / 60);
+        pickerMinute = checkin.duration % 60;
+      } else {
+        pickerHour = 1; pickerMinute = 0;
+      }
     } else {
-      if(durSelect) durSelect.value = "60";
+      pickerHour = 1; pickerMinute = 0;
     }
   } else {
     checkinSelected.clear();
-    if(durSelect) durSelect.value = "60";
+    pickerHour = 1; pickerMinute = 0;
     justSaved = false;
   }
+  updateDurationDisplay();
   el.innerHTML = ACTIONS.map(a=>{
     const ck=checkinSelected.has(a.id)?'checked':'';
     return `<button class="checkin-chip ${ck}" data-id="${a.id}" onclick="toggleCheckin('${a.id}',this)">
@@ -183,14 +205,14 @@ function renderDayDetail_live(){
   const el=document.getElementById('day-detail');
   if(!checkinSelected.size){el.innerHTML=`<h4>📅 ${selectedDate}</h4><p style="color:var(--text-muted);font-size:0.78rem">当日暂无练习记录</p>`;return;}
   const tags=[...checkinSelected].map(id=>{const a=findAction(id);return a?`<span class="day-action-tag">${a.emoji} ${a.zh}<span class="tag-remove" onclick="removeDayAction('${id}')">✕</span></span>`:''}).join('');
-  const durVal = document.getElementById('ice-duration')?.value || "0";
-  const durText = durVal !== "0" ? ` · ⏱️ ${durVal}分钟` : '';
+  const durVal = pickerHour * 60 + pickerMinute;
+  const durText = durVal > 0 ? ` · ⏱️ ${formatDuration(durVal)}` : '';
   el.innerHTML=`<h4>📅 ${selectedDate} · ${checkinSelected.size}个动作${durText}</h4><div class="day-action-list">${tags}</div>`;
 }
 
 async function saveCheckin() {
   if(!checkinSelected.size){toast('请先勾选练习动作');return;}
-  const durVal = parseInt(document.getElementById('ice-duration')?.value || "0", 10);
+  const durVal = pickerHour * 60 + pickerMinute;
   const savedActions = [...checkinSelected];
   const all=await dbGetAll('checkins');
   for(const c of all){if(c.date===selectedDate)await dbDelete('checkins',c.id);}
@@ -343,6 +365,54 @@ function renderAchievements(){
     const td=getActionPracticeDays(a.id),earned=td>=10;
     return `<div class="medal-item ${earned?'earned':''}"><div class="medal-icon">${earned?'🏅':'🔒'}</div><div class="medal-name">${a.zh}</div><div class="medal-progress">${td}/10次</div></div>`;
   }).join('');
+}
+
+// ─── Duration Picker ───
+function openDurationPicker() {
+  populatePickerColumns();
+  const overlay = document.getElementById('duration-picker-overlay');
+  overlay.classList.add('show');
+  setTimeout(() => {
+    document.getElementById('hour-scroll').scrollTop = HOUR_VALUES.indexOf(pickerHour) * PICKER_ITEM_H;
+    document.getElementById('minute-scroll').scrollTop = MINUTE_VALUES.indexOf(pickerMinute) * PICKER_ITEM_H;
+  }, 60);
+}
+function closeDurationPicker() {
+  document.getElementById('duration-picker-overlay').classList.remove('show');
+}
+function confirmDuration() {
+  updateDurationDisplay();
+  closeDurationPicker();
+  renderDayDetail_live();
+}
+function populatePickerColumns() {
+  const hourScroll = document.getElementById('hour-scroll');
+  const minuteScroll = document.getElementById('minute-scroll');
+  hourScroll.innerHTML = generatePickerItems(HOUR_VALUES);
+  minuteScroll.innerHTML = generatePickerItems(MINUTE_VALUES);
+  setupPickerScroll(hourScroll, HOUR_VALUES, 'hour');
+  setupPickerScroll(minuteScroll, MINUTE_VALUES, 'minute');
+}
+function generatePickerItems(values) {
+  let html = '';
+  for (let i = 0; i < 2; i++) html += '<div class="picker-item picker-pad"></div>';
+  values.forEach(v => {
+    html += `<div class="picker-item" data-value="${v}">${String(v).padStart(2, '0')}</div>`;
+  });
+  for (let i = 0; i < 2; i++) html += '<div class="picker-item picker-pad"></div>';
+  return html;
+}
+function setupPickerScroll(el, values, type) {
+  let scrollTimer;
+  el.onscroll = () => {
+    clearTimeout(scrollTimer);
+    scrollTimer = setTimeout(() => {
+      const index = Math.round(el.scrollTop / PICKER_ITEM_H);
+      const clampedIndex = Math.max(0, Math.min(values.length - 1, index));
+      if (type === 'hour') pickerHour = values[clampedIndex];
+      else pickerMinute = values[clampedIndex];
+    }, 100);
+  };
 }
 
 // ─── Init ───

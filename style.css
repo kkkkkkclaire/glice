@@ -444,18 +444,173 @@ body::before {
 /* ─── Utility Classes ─── */
 .mt-panel{margin-top:24px}
 
-/* Duration Select */
-.duration-select {
-  padding: 4px 8px;
-  font-size: 0.85rem;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  background-color: var(--surface-color);
-  color: var(--text-color);
-  outline: none;
-  font-family: inherit;
+/* ─── Duration Display Button ─── */
+.duration-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--border-accent);
+  background: var(--accent-light);
+  color: var(--accent);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 500;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+  transition: all 0.2s;
+}
+.duration-display:hover {
+  background: var(--accent-glow);
+  box-shadow: var(--shadow-sm);
+}
+.duration-display:active { transform: scale(0.96); }
+.dur-arrow { font-size: 0.6rem; opacity: 0.55; }
+
+/* ─── iOS-style Wheel Picker ─── */
+.picker-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 300;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s;
+}
+.picker-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+.picker-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.picker-modal {
+  position: relative;
+  background: var(--bg-surface);
+  border-radius: var(--r-xl) var(--r-xl) 0 0;
+  width: 100%;
+  max-width: var(--max-w);
+  transform: translateY(100%);
+  transition: transform 0.38s cubic-bezier(0.32, 0.72, 0, 1);
+  box-shadow: 0 -4px 30px rgba(0,0,0,0.12);
+}
+.picker-overlay.show .picker-modal {
+  transform: translateY(0);
+}
+.picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.picker-cancel, .picker-confirm {
+  background: none;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+.picker-cancel { color: var(--text-muted); }
+.picker-confirm { color: var(--accent); font-weight: 600; }
+.picker-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+.picker-body {
+  padding: 20px 0 calc(20px + var(--safe-bottom));
+}
+.picker-wheels {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  height: 220px;
+}
+.picker-column {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.picker-scroll {
+  width: 72px;
+  height: 220px;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  position: relative;
+  z-index: 1;
+}
+.picker-scroll::-webkit-scrollbar { display: none; }
+.picker-item {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: center;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  user-select: none;
+  flex-shrink: 0;
+}
+.picker-item.picker-pad {
+  scroll-snap-align: none;
+  visibility: hidden;
+}
+.picker-unit {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-left: 2px;
+  margin-right: 20px;
+  z-index: 3;
+}
+.picker-column:last-of-type .picker-unit {
+  margin-right: 0;
+}
+/* Highlight band across center */
+.picker-highlight-bar {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  top: 50%;
+  height: 44px;
+  transform: translateY(-50%);
+  border-radius: var(--r-sm);
+  background: var(--accent-glow);
+  border-top: 1px solid rgba(59,159,227,0.15);
+  border-bottom: 1px solid rgba(59,159,227,0.15);
+  pointer-events: none;
+  z-index: 0;
+}
+/* Gradient fades for depth effect */
+.picker-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 88px;
+  pointer-events: none;
+  z-index: 2;
+}
+.picker-fade-top {
+  top: 0;
+  background: linear-gradient(to bottom, var(--bg-surface) 15%, transparent 100%);
+}
+.picker-fade-bottom {
+  bottom: 0;
+  background: linear-gradient(to top, var(--bg-surface) 15%, transparent 100%);
 }
 
 /* Total Time Card */

@@ -35,16 +35,10 @@
         <div class="checkin-header">
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
             <h3>⛸️ 打卡</h3>
-            <select id="ice-duration" class="duration-select" aria-label="上冰时长">
-              <option value="0">无记录</option>
-              <option value="30">30分钟</option>
-              <option value="45">45分钟</option>
-              <option value="60" selected>1小时</option>
-              <option value="90">1.5小时</option>
-              <option value="120">2小时</option>
-              <option value="150">2.5小时</option>
-              <option value="180">3小时及以上</option>
-            </select>
+            <button id="duration-display" class="duration-display" onclick="openDurationPicker()" aria-label="上冰时长">
+              <span id="dur-text">1小时 00分</span>
+              <span class="dur-arrow">▾</span>
+            </button>
           </div>
           <button class="btn-save-compact" onclick="saveCheckin()">保存 ✓</button>
         </div>
@@ -144,6 +138,33 @@
       </button>
     </div>
   </nav>
+
+  <!-- Duration Picker -->
+  <div id="duration-picker-overlay" class="picker-overlay">
+    <div class="picker-mask" onclick="closeDurationPicker()"></div>
+    <div class="picker-modal">
+      <div class="picker-header">
+        <button class="picker-cancel" onclick="closeDurationPicker()">取消</button>
+        <span class="picker-title">上冰时长</span>
+        <button class="picker-confirm" onclick="confirmDuration()">确定</button>
+      </div>
+      <div class="picker-body">
+        <div class="picker-wheels">
+          <div class="picker-column">
+            <div class="picker-scroll" id="hour-scroll"></div>
+            <span class="picker-unit">时</span>
+          </div>
+          <div class="picker-column">
+            <div class="picker-scroll" id="minute-scroll"></div>
+            <span class="picker-unit">分</span>
+          </div>
+          <div class="picker-highlight-bar"></div>
+          <div class="picker-fade picker-fade-top"></div>
+          <div class="picker-fade picker-fade-bottom"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div id="toast" class="toast"></div>
 
