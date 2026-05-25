@@ -84,12 +84,11 @@ function renderLibrary() {
   tabs.innerHTML = CATEGORIES.map(c=>`<button class="cat-tab ${c.id===currentCat?'active':''}" onclick="setCat('${c.id}')">${c.label}</button>`).join('');
   document.querySelectorAll('.filter-pill').forEach(p=>p.classList.toggle('active',p.dataset.filter===currentFilter));
 
-  let acts = ACTIONS;
-  if (currentCat === 'mastered') acts = acts.filter(a => masteryMap[a.id] === 'mastered');
-  else if (currentCat !== 'all') acts = acts.filter(a => a.cat === currentCat);
+  let acts = currentCat === 'all' ? ACTIONS : ACTIONS.filter(a => a.cat === currentCat);
 
   if (currentFilter === 'learning') acts = acts.filter(a => masteryMap[a.id] === 'learning' || masteryMap[a.id] === 'mastered');
   else if (currentFilter === 'unlearned') acts = acts.filter(a => !masteryMap[a.id] || masteryMap[a.id] === 'unlearned');
+  else if (currentFilter === 'mastered') acts = acts.filter(a => masteryMap[a.id] === 'mastered');
 
   if (!acts.length) { grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">❄️</div><p>暂无匹配的动作</p></div>'; return; }
 
