@@ -564,10 +564,17 @@ body::before {
   color: var(--text-muted);
   user-select: none;
   flex-shrink: 0;
+  transition: color 0.1s, font-weight 0.1s, font-size 0.1s, transform 0.1s;
 }
 .picker-item.picker-pad {
   scroll-snap-align: none;
   visibility: hidden;
+}
+.picker-item.picker-active {
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 1.35rem;
+  transform: scale(1.06);
 }
 .picker-unit {
   font-size: 0.88rem;

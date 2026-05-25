@@ -12,6 +12,32 @@ let pickerHour = 1, pickerMinute = 0;
 const PICKER_ITEM_H = 44;
 const HOUR_VALUES = [0, 1, 2, 3, 4, 5];
 const MINUTE_VALUES = Array.from({length: 60}, (_, i) => i);
+let audioCtx;
+
+function playTick() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    osc.frequency.value = 1200;
+    gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.012);
+    osc.start(audioCtx.currentTime);
+    osc.stop(audioCtx.currentTime + 0.012);
+  } catch(e) {}
+}
+
+function setActiveItem(scrollEl, index) {
+  const items = scrollEl.querySelectorAll('.picker-item:not(.picker-pad)');
+  items.forEach(item => item.classList.remove('picker-active'));
+  if (index >= 0 && index < items.length) {
+    items[index].classList.add('picker-active');
+  }
+}
 
 // ─── IndexedDB ───
 const DB_NAME = 'GliceDB', DB_VER = 2;
@@ -373,8 +399,12 @@ function openDurationPicker() {
   const overlay = document.getElementById('duration-picker-overlay');
   overlay.classList.add('show');
   setTimeout(() => {
-    document.getElementById('hour-scroll').scrollTop = HOUR_VALUES.indexOf(pickerHour) * PICKER_ITEM_H;
-    document.getElementById('minute-scroll').scrollTop = MINUTE_VALUES.indexOf(pickerMinute) * PICKER_ITEM_H;
+    const hourScroll = document.getElementById('hour-scroll');
+    const minuteScroll = document.getElementById('minute-scroll');
+    hourScroll.scrollTop = HOUR_VALUES.indexOf(pickerHour) * PICKER_ITEM_H;
+    minuteScroll.scrollTop = MINUTE_VALUES.indexOf(pickerMinute) * PICKER_ITEM_H;
+    setActiveItem(hourScroll, HOUR_VALUES.indexOf(pickerHour));
+    setActiveItem(minuteScroll, MINUTE_VALUES.indexOf(pickerMinute));
   }, 60);
 }
 function closeDurationPicker() {
@@ -403,14 +433,19 @@ function generatePickerItems(values) {
   return html;
 }
 function setupPickerScroll(el, values, type) {
-  let scrollTimer;
+  let scrollTimer, lastIndex = -1;
   el.onscroll = () => {
+    const index = Math.round(el.scrollTop / PICKER_ITEM_H);
+    const clamped = Math.max(0, Math.min(values.length - 1, index));
+    if (clamped !== lastIndex) {
+      lastIndex = clamped;
+      playTick();
+      setActiveItem(el, clamped);
+    }
     clearTimeout(scrollTimer);
     scrollTimer = setTimeout(() => {
-      const index = Math.round(el.scrollTop / PICKER_ITEM_H);
-      const clampedIndex = Math.max(0, Math.min(values.length - 1, index));
-      if (type === 'hour') pickerHour = values[clampedIndex];
-      else pickerMinute = values[clampedIndex];
+      if (type === 'hour') pickerHour = values[clamped];
+      else pickerMinute = values[clamped];
     }, 100);
   };
 }
