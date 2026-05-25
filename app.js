@@ -4,7 +4,7 @@
 let ACTIONS = [...DEFAULT_ACTIONS];
 let db, currentPage = 'training', currentCat = 'all', currentFilter = 'all';
 let calYear, calMonth, selectedDate, currentDetailAction = null;
-let masteryMap = {}, checkinData = [], notesData = [], customActions = [];
+let masteryMap = {}, masteryDateMap = {}, checkinData = [], notesData = [], customActions = [];
 let checkinSelected = new Set();
 
 // ─── Duration Picker State ───
@@ -227,7 +227,8 @@ async function saveCheckin() {
   checkinData=await dbGetAll('checkins');
   for(const id of savedActions){
     if(masteryMap[id]!=='mastered' && getActionPracticeDays(id)>=10){
-      masteryMap[id]='mastered';await dbPut('mastery',{actionId:id,level:'mastered'});
+      masteryMap[id]='mastered'; masteryDateMap[id]=selectedDate;
+      await dbPut('mastery',{actionId:id,level:'mastered',masteredDate:selectedDate});
     }
   }
   toast('✅ 打卡成功！');
@@ -250,7 +251,15 @@ function buildTimeline(actionId) {
   // Determine which practice triggered mastery
   let masteryIndex = -1;
   if (m === 'mastered') {
-    masteryIndex = practices.length >= 10 ? 9 : practices.length - 1;
+    const mDate = masteryDateMap[actionId];
+    if (mDate) {
+      for (let i = practices.length - 1; i >= 0; i--) {
+        if (practices[i] <= mDate) { masteryIndex = i; break; }
+      }
+      if (masteryIndex === -1) masteryIndex = 0;
+    } else {
+      masteryIndex = practices.length >= 10 ? 9 : practices.length - 1;
+    }
   }
 
   const milestones = new Set([1, 5, 10, 15, 20, 30, 50, 100]);
@@ -350,7 +359,19 @@ function openDetail(actionId) {
 }
 function closeDetail(){switchPage('library');}
 
-async function setMastery(id,lv){masteryMap[id]=lv;await dbPut('mastery',{actionId:id,level:lv});openDetail(id);toast(lv==='mastered'?'💜 已熟练':lv==='learning'?'🔹 学习中':'⚪ 重置');}
+async function setMastery(id,lv){
+  masteryMap[id]=lv;
+  const record = {actionId:id, level:lv};
+  if (lv === 'mastered') {
+    record.masteredDate = dateStr();
+    masteryDateMap[id] = record.masteredDate;
+  } else {
+    delete masteryDateMap[id];
+  }
+  await dbPut('mastery', record);
+  openDetail(id);
+  toast(lv==='mastered'?'💜 已熟练':lv==='learning'?'🔹 学习中':'⚪ 重置');
+}
 
 async function deleteCustomAction(id){
   await dbDelete('customActions',id);
@@ -495,7 +516,7 @@ function setupPickerScroll(el, values, type) {
 // ─── Init ───
 async function init(){
   await openDB();
-  const ml=await dbGetAll('mastery');ml.forEach(m=>{masteryMap[m.actionId]=m.level;});
+  const ml=await dbGetAll('mastery');ml.forEach(m=>{masteryMap[m.actionId]=m.level; if(m.masteredDate) masteryDateMap[m.actionId]=m.masteredDate;});
   checkinData=await dbGetAll('checkins');
   notesData=await dbGetAll('notes');
   customActions=await dbGetAll('customActions');
