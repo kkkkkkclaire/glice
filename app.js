@@ -403,16 +403,13 @@ async function renderNotes(id){
         </div>
         <textarea id="edit-note-text-${n.id}" style="width:100%;font-size:16px;padding:8px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--bg-deep);color:var(--text-primary);font-family:var(--font-body);resize:none;" rows="3">${n.text}</textarea>
         <div style="display:flex;gap:8px;margin-top:8px;">
-          <button class="btn-primary" onclick="updateNote(${n.id})" style="flex:1;padding:6px;">保存</button>
-          <button class="btn-secondary" onclick="cancelEditNote()" style="flex:1;padding:6px;">取消</button>
+          <button class="note-edit-btn delete" onclick="deleteNote(${n.id})">删除</button>
+          <button class="note-edit-btn cancel" onclick="cancelEditNote()">取消</button>
+          <button class="note-edit-btn save" onclick="updateNote(${n.id})">保存</button>
         </div>
       </div>`;
     }
-    return `<div class="note-item">
-      <div class="note-actions" style="float:right;">
-        <button class="note-delete" onclick="startEditNote(${n.id})">编辑</button>
-        <button class="note-delete" style="margin-left:8px;" onclick="deleteNote(${n.id})">删除</button>
-      </div>
+    return `<div class="note-item" onclick="startEditNote(${n.id})" style="cursor:pointer;">
       <div class="note-date">${n.date}</div>
       <div class="note-text">${n.text}</div>
     </div>`;

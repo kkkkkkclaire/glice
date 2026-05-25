@@ -444,11 +444,15 @@ body::before {
 }
 .note-item .note-date { font-size: 0.62rem; color: var(--text-muted); margin-bottom: 3px; }
 .note-item .note-text { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.55; }
-.note-item .note-delete {
-  float: right; background: none; border: none; color: var(--text-muted);
-  cursor: pointer; font-size: 0.72rem; opacity: 0.5; transition: opacity 0.2s;
+.note-edit-btn {
+  flex: 1; padding: 6px 0; border-radius: var(--r-sm); font-size: 0.75rem; 
+  font-weight: 500; font-family: var(--font-body); cursor: pointer; transition: all 0.2s;
+  border: 1px solid transparent; text-align: center;
 }
-.note-item .note-delete:hover { opacity: 1; color: #EF5350; }
+.note-edit-btn.save { background: var(--accent); color: #fff; }
+.note-edit-btn.cancel { background: transparent; border-color: var(--border-accent); color: var(--accent); }
+.note-edit-btn.delete { background: #EF5350; color: #fff; }
+.note-edit-btn:active { transform: scale(0.95); }
 
 /* ─── Achievements ─── */
 .report-card {
