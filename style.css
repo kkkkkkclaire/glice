@@ -71,7 +71,7 @@ body::before {
 }
 
 /* ─── Pages ─── */
-.page { display: none; padding: var(--sp-md); animation: fadeUp 0.32s ease; }
+.page { display: none; padding: var(--sp-md); animation: fadeUp 0.32s ease; overflow-x: hidden; }
 .page.active { display: block; }
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(10px); }
@@ -133,7 +133,7 @@ body::before {
 .mastery-dot.mastered  { background: var(--mastery-mastered); box-shadow: 0 0 6px rgba(179,157,219,0.4); }
 
 /* ─── Action Grid ─── */
-.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; overflow: hidden; }
 .action-card {
   padding: 14px; display: flex; flex-direction: column; gap: var(--sp-sm); min-height: 115px;
 }
@@ -380,25 +380,26 @@ body::before {
 /* ─── Custom Action Editor ─── */
 .add-action-panel {
   background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--r-lg); padding: var(--sp-md); margin-bottom: var(--sp-md);
-  box-shadow: var(--shadow-sm);
+  border-radius: var(--r-lg); padding: var(--sp-md); margin-bottom: var(--sp-lg);
+  box-shadow: var(--shadow-sm); overflow: hidden;
 }
 .add-action-panel h3 {
   font-family: var(--font-display); font-weight: 600; font-size: 0.95rem;
   margin-bottom: var(--sp-md); display: flex; align-items: center; gap: var(--sp-sm);
 }
-.add-action-form { display: flex; flex-direction: column; gap: var(--sp-sm); }
+.add-action-form { display: flex; flex-direction: column; gap: var(--sp-sm); overflow: hidden; }
 .add-action-form input, .add-action-form select {
   padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--r-md);
   background: var(--bg-deep); color: var(--text-primary);
   font-family: var(--font-body); font-size: 0.82rem; transition: border-color 0.2s;
+  min-width: 0; max-width: 100%; box-sizing: border-box;
 }
 .add-action-form input:focus, .add-action-form select:focus {
   outline: none; border-color: var(--accent);
 }
 .add-action-form input::placeholder { color: var(--text-muted); }
 .form-row { display: flex; gap: var(--sp-sm); }
-.form-row > * { flex: 1; }
+.form-row > * { flex: 1; min-width: 0; }
 
 /* ─── Day Detail ─── */
 .day-detail {
