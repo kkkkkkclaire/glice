@@ -307,6 +307,135 @@ body::before {
 .stat-box .stat-val { font-family: var(--font-display); font-size: 1.4rem; font-weight: 700; color: var(--accent); }
 .stat-box .stat-label { font-size: 0.62rem; color: var(--text-muted); margin-top: 2px; }
 
+/* ─── Practice Timeline ─── */
+.timeline-section {
+  margin-bottom: var(--sp-lg);
+}
+.timeline-section h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: var(--sp-md);
+}
+.timeline {
+  position: relative;
+  padding-left: 32px;
+  max-height: 360px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+/* Vertical timeline track */
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--mastery-mastered), var(--mastery-learning));
+  border-radius: 2px;
+}
+.timeline.no-mastery::before {
+  background: var(--mastery-learning);
+}
+/* Timeline node */
+.timeline-item {
+  position: relative;
+  padding-bottom: 22px;
+  animation: tl-fade-in 0.4s ease both;
+}
+.timeline-item:last-child { padding-bottom: 0; }
+@keyframes tl-fade-in {
+  from { opacity: 0; transform: translateX(-6px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+/* Dot */
+.timeline-dot {
+  position: absolute;
+  left: -32px;
+  top: 1px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--mastery-learning);
+  border: 3px solid var(--bg-surface);
+  box-sizing: content-box;
+  z-index: 1;
+  transition: transform 0.2s;
+}
+/* Milestone dot — larger, with glow */
+.timeline-item.milestone .timeline-dot {
+  width: 18px;
+  height: 18px;
+  left: -33px;
+  top: 0;
+  box-shadow: 0 0 8px rgba(79,195,247,0.45);
+}
+/* First practice — blue ring */
+.timeline-item.first .timeline-dot {
+  width: 18px;
+  height: 18px;
+  left: -33px;
+  top: 0;
+  background: var(--bg-surface);
+  border: 3px solid var(--mastery-learning);
+  box-shadow: 0 0 10px rgba(79,195,247,0.5);
+}
+/* Mastery — purple with glow */
+.timeline-item.mastered .timeline-dot {
+  width: 20px;
+  height: 20px;
+  left: -34px;
+  top: -1px;
+  background: var(--mastery-mastered);
+  border-color: var(--bg-surface);
+  box-shadow: 0 0 12px rgba(179,157,219,0.55);
+}
+/* Compact practice node — smaller dot */
+.timeline-item.compact .timeline-dot {
+  width: 10px;
+  height: 10px;
+  left: -29px;
+  top: 4px;
+  border-width: 2px;
+}
+/* Content block */
+.timeline-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--sp-sm);
+}
+.timeline-label {
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+.timeline-item.compact .timeline-label {
+  font-weight: 400;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+.timeline-item.mastered .timeline-label {
+  color: #7E57C2;
+}
+.timeline-item.first .timeline-label {
+  color: #0288D1;
+}
+.timeline-date {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+/* Duration badge */
+.timeline-dur {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
 /* Notes */
 .notes-section h3 { font-family: var(--font-display); font-weight: 600; font-size: 1rem; margin-bottom: var(--sp-md); }
 .note-input-row { display: flex; gap: var(--sp-sm); margin-bottom: var(--sp-sm); }

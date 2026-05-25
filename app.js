@@ -258,6 +258,74 @@ async function saveCheckin() {
 }
 
 // ─── Detail ───
+function buildTimeline(actionId) {
+  const m = masteryMap[actionId] || 'unlearned';
+  // Collect all practice dates with durations
+  const practices = checkinData
+    .filter(c => c.actions.includes(actionId))
+    .map(c => ({ date: c.date, duration: c.duration || 0 }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  if (practices.length === 0) {
+    return '<div class="empty-state"><p style="font-size:0.78rem">还没有练习记录，开始你的第一次练习吧</p></div>';
+  }
+
+  const milestones = new Set([1, 5, 10, 15, 20, 30, 50, 100]);
+  const events = [];
+
+  // Practice events (chronological index)
+  practices.forEach((p, i) => {
+    const num = i + 1;
+    const isFirst = num === 1;
+    const isMilestone = milestones.has(num);
+    let type, label;
+    if (isFirst) {
+      type = 'first';
+      label = '✨ 首次练习';
+    } else if (isMilestone) {
+      type = 'milestone';
+      label = `第 ${num} 次练习`;
+    } else {
+      type = 'compact';
+      label = `练习 #${num}`;
+    }
+    events.push({ date: p.date, duration: p.duration, type, label, sortKey: num });
+  });
+
+  // Mastery event
+  if (m === 'mastered') {
+    const masteryDate = practices.length >= 10 ? practices[9].date : practices[practices.length - 1].date;
+    const masteryNum = practices.length >= 10 ? 10 : practices.length;
+    events.push({
+      date: masteryDate, duration: 0,
+      type: 'mastered',
+      label: '🏅 已熟练',
+      sortKey: masteryNum + 0.5 // place right after the practice that triggered it
+    });
+  }
+
+  // Sort newest first; same date: higher sortKey first
+  events.sort((a, b) => {
+    if (a.date !== b.date) return b.date.localeCompare(a.date);
+    return b.sortKey - a.sortKey;
+  });
+
+  const timelineCls = m === 'mastered' ? 'timeline' : 'timeline no-mastery';
+  const html = events.map((e, i) => {
+    const durInfo = e.duration && e.type !== 'mastered'
+      ? `<div class="timeline-dur">⏱️ ${formatDuration(e.duration)}</div>` : '';
+    const delay = `animation-delay:${i * 0.04}s`;
+    return `<div class="timeline-item ${e.type}" style="${delay}">
+      <div class="timeline-dot"></div>
+      <div class="timeline-content">
+        <div><div class="timeline-label">${e.label}</div>${durInfo}</div>
+        <div class="timeline-date">${e.date}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `<div class="${timelineCls}">${html}</div>`;
+}
 function openDetail(actionId) {
   currentDetailAction=actionId;
   const a=findAction(actionId); if(!a)return;
@@ -283,6 +351,10 @@ function openDetail(actionId) {
     <div class="stats-row">
       <div class="stat-box"><div class="stat-val">${td}</div><div class="stat-label">累计练习天数</div></div>
       <div class="stat-box"><div class="stat-val">${rd}</div><div class="stat-label">近30天练习</div></div>
+    </div>
+    <div class="timeline-section">
+      <h3>📅 练习时间轴</h3>
+      ${buildTimeline(a.id)}
     </div>
     <div class="notes-section">
       <h3>📝 练习笔记</h3>
