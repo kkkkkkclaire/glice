@@ -390,16 +390,54 @@ async function deleteCustomAction(id){
 }
 
 // ─── Notes ───
+let editingNoteId = null;
 async function renderNotes(id){
   const list=document.getElementById('notes-list');
   const notes=notesData.filter(n=>n.actionId===id).sort((a,b)=>b.id-a.id);
   if(!notes.length){list.innerHTML='<div class="empty-state"><p style="font-size:0.78rem">还没有笔记，记录你的第一条感悟吧</p></div>';return;}
-  list.innerHTML=notes.map(n=>`<div class="note-item"><button class="note-delete" onclick="deleteNote(${n.id})">删除</button><div class="note-date">${n.date}</div><div class="note-text">${n.text}</div></div>`).join('');
+  list.innerHTML=notes.map(n=>{
+    if (editingNoteId === n.id) {
+      return `<div class="note-item edit-mode">
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <input type="date" id="edit-note-date-${n.id}" value="${n.date}" style="flex:1;font-size:16px;padding:6px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--bg-deep);color:var(--text-primary);font-family:var(--font-body);">
+        </div>
+        <textarea id="edit-note-text-${n.id}" style="width:100%;font-size:16px;padding:8px;border:1px solid var(--border);border-radius:var(--r-sm);background:var(--bg-deep);color:var(--text-primary);font-family:var(--font-body);resize:none;" rows="3">${n.text}</textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="btn-primary" onclick="updateNote(${n.id})" style="flex:1;padding:6px;">保存</button>
+          <button class="btn-secondary" onclick="cancelEditNote()" style="flex:1;padding:6px;">取消</button>
+        </div>
+      </div>`;
+    }
+    return `<div class="note-item">
+      <div class="note-actions" style="float:right;">
+        <button class="note-delete" onclick="startEditNote(${n.id})">编辑</button>
+        <button class="note-delete" style="margin-left:8px;" onclick="deleteNote(${n.id})">删除</button>
+      </div>
+      <div class="note-date">${n.date}</div>
+      <div class="note-text">${n.text}</div>
+    </div>`;
+  }).join('');
+}
+function startEditNote(id) { editingNoteId = id; renderNotes(currentDetailAction); }
+function cancelEditNote() { editingNoteId = null; renderNotes(currentDetailAction); }
+async function updateNote(id) {
+  const newDate = document.getElementById(`edit-note-date-${id}`).value;
+  const newText = document.getElementById(`edit-note-text-${id}`).value.trim();
+  if(!newText){toast('请输入笔记内容');return;}
+  const note = notesData.find(n=>n.id===id);
+  if(note) {
+    note.date = newDate || note.date;
+    note.text = newText;
+    await dbPut('notes', note);
+  }
+  editingNoteId = null;
+  renderNotes(currentDetailAction);
+  toast('📝 笔记已更新');
 }
 async function saveNote(){
   const input=document.getElementById('note-input'),text=input.value.trim();
   if(!text){toast('请输入笔记内容');return;}
-  await dbAdd('notes',{actionId:currentDetailAction,text,date:dateStr()});
+  await dbAdd('notes',{actionId:currentDetailAction,text,date:selectedDate || dateStr()});
   notesData=await dbGetAll('notes');input.value='';
   renderNotes(currentDetailAction);toast('📝 笔记已保存');
 }
