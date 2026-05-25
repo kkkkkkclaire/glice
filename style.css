@@ -443,7 +443,7 @@ body::before {
   margin-bottom: var(--sp-sm); animation: fadeUp 0.3s ease;
 }
 .note-item .note-date { font-size: 0.62rem; color: var(--text-muted); margin-bottom: 3px; }
-.note-item .note-text { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.55; }
+.note-item .note-text { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.55; white-space: pre-wrap; }
 .note-edit-btn {
   flex: 1; padding: 6px 0; border-radius: var(--r-sm); font-size: 0.75rem; 
   font-weight: 500; font-family: var(--font-body); cursor: pointer; transition: all 0.2s;
@@ -451,7 +451,7 @@ body::before {
 }
 .note-edit-btn.save { background: var(--accent); color: #fff; }
 .note-edit-btn.cancel { background: transparent; border-color: var(--border-accent); color: var(--accent); }
-.note-edit-btn.delete { background: #EF5350; color: #fff; }
+.note-edit-btn.delete { background: #F3E8FF; color: #7E57C2; }
 .note-edit-btn:active { transform: scale(0.95); }
 
 /* ─── Achievements ─── */
