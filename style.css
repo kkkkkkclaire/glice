@@ -415,7 +415,7 @@ body::before {
 .note-input-row textarea {
   flex: 1; background: var(--bg-deep); border: 1px solid var(--border);
   border-radius: var(--r-md); padding: var(--sp-sm) var(--sp-md);
-  color: var(--text-primary); font-family: var(--font-body); font-size: 0.85rem;
+  color: var(--text-primary); font-family: var(--font-body); font-size: 16px;
   resize: none; min-height: 56px; transition: border-color 0.2s;
 }
 .note-input-row textarea:focus { outline: none; border-color: var(--accent); }
@@ -493,7 +493,7 @@ body::before {
 .add-action-form input, .add-action-form select {
   padding: 10px 14px; border: 1px solid var(--border); border-radius: var(--r-md);
   background: var(--bg-deep); color: var(--text-primary);
-  font-family: var(--font-body); font-size: 0.82rem; transition: border-color 0.2s;
+  font-family: var(--font-body); font-size: 16px; transition: border-color 0.2s;
   min-width: 0; max-width: 100%; box-sizing: border-box;
 }
 .add-action-form input:focus, .add-action-form select:focus {
