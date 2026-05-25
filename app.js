@@ -84,9 +84,12 @@ function renderLibrary() {
   tabs.innerHTML = CATEGORIES.map(c=>`<button class="cat-tab ${c.id===currentCat?'active':''}" onclick="setCat('${c.id}')">${c.label}</button>`).join('');
   document.querySelectorAll('.filter-pill').forEach(p=>p.classList.toggle('active',p.dataset.filter===currentFilter));
 
-  let acts = currentCat==='all' ? ACTIONS : ACTIONS.filter(a=>a.cat===currentCat);
-  if (currentFilter==='learning') acts=acts.filter(a=>masteryMap[a.id]==='learning'||masteryMap[a.id]==='mastered');
-  else if (currentFilter==='unlearned') acts=acts.filter(a=>!masteryMap[a.id]||masteryMap[a.id]==='unlearned');
+  let acts = ACTIONS;
+  if (currentCat === 'mastered') acts = acts.filter(a => masteryMap[a.id] === 'mastered');
+  else if (currentCat !== 'all') acts = acts.filter(a => a.cat === currentCat);
+
+  if (currentFilter === 'learning') acts = acts.filter(a => masteryMap[a.id] === 'learning' || masteryMap[a.id] === 'mastered');
+  else if (currentFilter === 'unlearned') acts = acts.filter(a => !masteryMap[a.id] || masteryMap[a.id] === 'unlearned');
 
   if (!acts.length) { grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">❄️</div><p>暂无匹配的动作</p></div>'; return; }
 
@@ -250,13 +253,19 @@ function buildTimeline(actionId) {
 
   // Determine which practice triggered mastery
   let masteryIndex = -1;
+  let standaloneMasteryDate = null;
   if (m === 'mastered') {
     const mDate = masteryDateMap[actionId];
     if (mDate) {
-      for (let i = practices.length - 1; i >= 0; i--) {
-        if (practices[i] <= mDate) { masteryIndex = i; break; }
+      const pIdx = practices.indexOf(mDate);
+      if (pIdx !== -1) {
+        masteryIndex = pIdx;
+      } else {
+        standaloneMasteryDate = mDate;
+        for (let i = practices.length - 1; i >= 0; i--) {
+          if (practices[i] < mDate) { masteryIndex = i; break; }
+        }
       }
-      if (masteryIndex === -1) masteryIndex = 0;
     } else {
       masteryIndex = practices.length >= 10 ? 9 : practices.length - 1;
     }
@@ -268,27 +277,27 @@ function buildTimeline(actionId) {
   practices.forEach((date, i) => {
     const num = i + 1;
     const isFirst = i === 0;
-    const isMasteryPractice = i === masteryIndex;
-    const isAfterMastery = masteryIndex >= 0 && i > masteryIndex;
+    const isMasteryPractice = (i === masteryIndex && !standaloneMasteryDate);
+    const isAfterMastery = (masteryIndex >= 0 && i > masteryIndex) || (standaloneMasteryDate && date > standaloneMasteryDate);
     const isMilestone = milestones.has(num);
 
     let type, label;
     if (isMasteryPractice) {
-      type = 'mastered';
-      label = '🏅 已熟练';
+      type = 'mastered'; label = '🏅 已熟练';
     } else if (isFirst) {
-      type = 'first';
-      label = '✨ 首次练习';
+      type = 'first'; label = '✨ 首次练习';
     } else if (isAfterMastery) {
-      type = 'post-mastery';
-      label = isMilestone ? `第 ${num} 次练习` : `练习 #${num}`;
+      type = 'post-mastery'; label = isMilestone ? `第 ${num} 次练习` : `练习 #${num}`;
     } else {
-      type = isMilestone ? 'milestone' : 'compact';
-      label = isMilestone ? `第 ${num} 次练习` : `练习 #${num}`;
+      type = isMilestone ? 'milestone' : 'compact'; label = isMilestone ? `第 ${num} 次练习` : `练习 #${num}`;
     }
-
     events.push({ date, type, label, sortKey: num });
   });
+
+  if (standaloneMasteryDate || (m === 'mastered' && practices.length === 0)) {
+    const d = standaloneMasteryDate || masteryDateMap[actionId] || dateStr();
+    events.push({ date: d, type: 'mastered', label: '🏅 已熟练', sortKey: 99999 });
+  }
 
   // Sort newest first
   events.sort((a, b) => {
@@ -363,7 +372,7 @@ async function setMastery(id,lv){
   masteryMap[id]=lv;
   const record = {actionId:id, level:lv};
   if (lv === 'mastered') {
-    record.masteredDate = dateStr();
+    record.masteredDate = selectedDate || dateStr();
     masteryDateMap[id] = record.masteredDate;
   } else {
     delete masteryDateMap[id];

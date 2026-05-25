@@ -60,4 +60,5 @@ const CATEGORIES = [
   { id:'step', label:'步法' },
   { id:'connect', label:'连接动作' },
   { id:'custom', label:'自定义' },
+  { id:'mastered', label:'已掌握' },
 ];
