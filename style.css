@@ -346,10 +346,10 @@ body::before {
 }
 .timeline-item:last-child { padding-bottom: 0; }
 @keyframes tl-fade-in {
-  from { opacity: 0; transform: translateX(-6px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-/* Dot */
+/* Dot — uniform size for all nodes */
 .timeline-dot {
   position: absolute;
   left: -32px;
@@ -361,43 +361,19 @@ body::before {
   border: 3px solid var(--bg-surface);
   box-sizing: content-box;
   z-index: 1;
-  transition: transform 0.2s;
 }
-/* Milestone dot — larger, with glow */
-.timeline-item.milestone .timeline-dot {
-  width: 18px;
-  height: 18px;
-  left: -33px;
-  top: 0;
-  box-shadow: 0 0 8px rgba(79,195,247,0.45);
-}
-/* First practice — blue ring */
+/* First practice — blue with foggy halo */
 .timeline-item.first .timeline-dot {
-  width: 18px;
-  height: 18px;
-  left: -33px;
-  top: 0;
-  background: var(--bg-surface);
-  border: 3px solid var(--mastery-learning);
-  box-shadow: 0 0 10px rgba(79,195,247,0.5);
+  box-shadow: 0 0 0 4px rgba(79,195,247,0.15), 0 0 14px 2px rgba(79,195,247,0.30);
 }
-/* Mastery — purple with glow */
+/* Mastery — purple with foggy halo */
 .timeline-item.mastered .timeline-dot {
-  width: 20px;
-  height: 20px;
-  left: -34px;
-  top: -1px;
   background: var(--mastery-mastered);
-  border-color: var(--bg-surface);
-  box-shadow: 0 0 12px rgba(179,157,219,0.55);
+  box-shadow: 0 0 0 4px rgba(179,157,219,0.15), 0 0 14px 2px rgba(179,157,219,0.30);
 }
-/* Compact practice node — smaller dot */
-.timeline-item.compact .timeline-dot {
-  width: 10px;
-  height: 10px;
-  left: -29px;
-  top: 4px;
-  border-width: 2px;
+/* Post-mastery practices — solid purple */
+.timeline-item.post-mastery .timeline-dot {
+  background: var(--mastery-mastered);
 }
 /* Content block */
 .timeline-content {
@@ -420,6 +396,9 @@ body::before {
 .timeline-item.mastered .timeline-label {
   color: #7E57C2;
 }
+.timeline-item.post-mastery .timeline-label {
+  color: #7E57C2;
+}
 .timeline-item.first .timeline-label {
   color: #0288D1;
 }
@@ -428,12 +407,6 @@ body::before {
   color: var(--text-muted);
   white-space: nowrap;
   flex-shrink: 0;
-}
-/* Duration badge */
-.timeline-dur {
-  font-size: 0.62rem;
-  color: var(--text-muted);
-  margin-top: 1px;
 }
 
 /* Notes */
@@ -693,17 +666,10 @@ body::before {
   color: var(--text-muted);
   user-select: none;
   flex-shrink: 0;
-  transition: color 0.1s, font-weight 0.1s, font-size 0.1s, transform 0.1s;
 }
 .picker-item.picker-pad {
   scroll-snap-align: none;
   visibility: hidden;
-}
-.picker-item.picker-active {
-  color: var(--text-primary);
-  font-weight: 600;
-  font-size: 1.35rem;
-  transform: scale(1.06);
 }
 .picker-unit {
   font-size: 0.88rem;

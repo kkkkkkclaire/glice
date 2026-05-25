@@ -12,31 +12,9 @@ let pickerHour = 1, pickerMinute = 0;
 const PICKER_ITEM_H = 44;
 const HOUR_VALUES = [0, 1, 2, 3, 4, 5];
 const MINUTE_VALUES = Array.from({length: 60}, (_, i) => i);
-let audioCtx;
 
 function playTick() {
-  try {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.type = 'sine';
-    osc.frequency.value = 1200;
-    gain.gain.setValueAtTime(0.03, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.012);
-    osc.start(audioCtx.currentTime);
-    osc.stop(audioCtx.currentTime + 0.012);
-  } catch(e) {}
-}
-
-function setActiveItem(scrollEl, index) {
-  const items = scrollEl.querySelectorAll('.picker-item:not(.picker-pad)');
-  items.forEach(item => item.classList.remove('picker-active'));
-  if (index >= 0 && index < items.length) {
-    items[index].classList.add('picker-active');
-  }
+  try { if (navigator.vibrate) navigator.vibrate(1); } catch(e) {}
 }
 
 // ─── IndexedDB ───
@@ -260,51 +238,50 @@ async function saveCheckin() {
 // ─── Detail ───
 function buildTimeline(actionId) {
   const m = masteryMap[actionId] || 'unlearned';
-  // Collect all practice dates with durations
   const practices = checkinData
     .filter(c => c.actions.includes(actionId))
-    .map(c => ({ date: c.date, duration: c.duration || 0 }))
-    .sort((a, b) => a.date.localeCompare(b.date));
+    .map(c => c.date)
+    .sort();
 
   if (practices.length === 0) {
     return '<div class="empty-state"><p style="font-size:0.78rem">还没有练习记录，开始你的第一次练习吧</p></div>';
   }
 
+  // Determine which practice triggered mastery
+  let masteryIndex = -1;
+  if (m === 'mastered') {
+    masteryIndex = practices.length >= 10 ? 9 : practices.length - 1;
+  }
+
   const milestones = new Set([1, 5, 10, 15, 20, 30, 50, 100]);
   const events = [];
 
-  // Practice events (chronological index)
-  practices.forEach((p, i) => {
+  practices.forEach((date, i) => {
     const num = i + 1;
-    const isFirst = num === 1;
+    const isFirst = i === 0;
+    const isMasteryPractice = i === masteryIndex;
+    const isAfterMastery = masteryIndex >= 0 && i > masteryIndex;
     const isMilestone = milestones.has(num);
+
     let type, label;
-    if (isFirst) {
+    if (isMasteryPractice) {
+      type = 'mastered';
+      label = '🏅 已熟练';
+    } else if (isFirst) {
       type = 'first';
       label = '✨ 首次练习';
-    } else if (isMilestone) {
-      type = 'milestone';
-      label = `第 ${num} 次练习`;
+    } else if (isAfterMastery) {
+      type = 'post-mastery';
+      label = isMilestone ? `第 ${num} 次练习` : `练习 #${num}`;
     } else {
-      type = 'compact';
-      label = `练习 #${num}`;
+      type = isMilestone ? 'milestone' : 'compact';
+      label = isMilestone ? `第 ${num} 次练习` : `练习 #${num}`;
     }
-    events.push({ date: p.date, duration: p.duration, type, label, sortKey: num });
+
+    events.push({ date, type, label, sortKey: num });
   });
 
-  // Mastery event
-  if (m === 'mastered') {
-    const masteryDate = practices.length >= 10 ? practices[9].date : practices[practices.length - 1].date;
-    const masteryNum = practices.length >= 10 ? 10 : practices.length;
-    events.push({
-      date: masteryDate, duration: 0,
-      type: 'mastered',
-      label: '🏅 已熟练',
-      sortKey: masteryNum + 0.5 // place right after the practice that triggered it
-    });
-  }
-
-  // Sort newest first; same date: higher sortKey first
+  // Sort newest first
   events.sort((a, b) => {
     if (a.date !== b.date) return b.date.localeCompare(a.date);
     return b.sortKey - a.sortKey;
@@ -312,13 +289,11 @@ function buildTimeline(actionId) {
 
   const timelineCls = m === 'mastered' ? 'timeline' : 'timeline no-mastery';
   const html = events.map((e, i) => {
-    const durInfo = e.duration && e.type !== 'mastered'
-      ? `<div class="timeline-dur">⏱️ ${formatDuration(e.duration)}</div>` : '';
     const delay = `animation-delay:${i * 0.04}s`;
     return `<div class="timeline-item ${e.type}" style="${delay}">
       <div class="timeline-dot"></div>
       <div class="timeline-content">
-        <div><div class="timeline-label">${e.label}</div>${durInfo}</div>
+        <div class="timeline-label">${e.label}</div>
         <div class="timeline-date">${e.date}</div>
       </div>
     </div>`;
@@ -471,12 +446,8 @@ function openDurationPicker() {
   const overlay = document.getElementById('duration-picker-overlay');
   overlay.classList.add('show');
   setTimeout(() => {
-    const hourScroll = document.getElementById('hour-scroll');
-    const minuteScroll = document.getElementById('minute-scroll');
-    hourScroll.scrollTop = HOUR_VALUES.indexOf(pickerHour) * PICKER_ITEM_H;
-    minuteScroll.scrollTop = MINUTE_VALUES.indexOf(pickerMinute) * PICKER_ITEM_H;
-    setActiveItem(hourScroll, HOUR_VALUES.indexOf(pickerHour));
-    setActiveItem(minuteScroll, MINUTE_VALUES.indexOf(pickerMinute));
+    document.getElementById('hour-scroll').scrollTop = HOUR_VALUES.indexOf(pickerHour) * PICKER_ITEM_H;
+    document.getElementById('minute-scroll').scrollTop = MINUTE_VALUES.indexOf(pickerMinute) * PICKER_ITEM_H;
   }, 60);
 }
 function closeDurationPicker() {
@@ -512,7 +483,6 @@ function setupPickerScroll(el, values, type) {
     if (clamped !== lastIndex) {
       lastIndex = clamped;
       playTick();
-      setActiveItem(el, clamped);
     }
     clearTimeout(scrollTimer);
     scrollTimer = setTimeout(() => {
