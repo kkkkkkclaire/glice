@@ -549,51 +549,39 @@ function renderAchievements(){
     </div>`;
   }).join('');
 
-  // Muscle memory badges (10 days)
+  // Muscle memory badges (10 days) — only show earned
   const muscleEarned = [];
-  const muscleLocked = [];
   ACTIONS.forEach(a => {
     const td = getActionPracticeDays(a.id);
-    const earned = td >= 10;
-    const item = { action: a, days: td, earned };
-    if (earned) muscleEarned.push(item);
-    else muscleLocked.push(item);
+    if (td >= 10) muscleEarned.push({ action: a, days: td });
   });
-  muscleLocked.sort((a,b) => b.days - a.days);
-  const muscleAll = [...muscleEarned, ...muscleLocked];
 
-  document.getElementById('muscle-badges').innerHTML = muscleAll.map(({ action, days, earned }) => {
-    const pct = Math.min(100, (days / 10) * 100);
-    return `<div class="badge-card-sm ${earned ? 'earned' : ''}">
-      <div class="badge-medal-sm">${earned ? '💪' : '🔒'}</div>
-      <div class="badge-name-sm">${action.emoji} ${action.zh}</div>
-      <div class="badge-progress-bar-sm"><div class="badge-progress-fill" style="width:${pct}%"></div></div>
-      <div class="badge-progress-text-sm">${earned ? '已激活' : days + '/10天'}</div>
-    </div>`;
-  }).join('');
+  document.getElementById('muscle-badges').innerHTML = muscleEarned.length
+    ? muscleEarned.map(({ action }) => {
+        return `<div class="badge-card-sm earned">
+          <div class="badge-medal-sm">💪</div>
+          <div class="badge-name-sm">${action.emoji} ${action.zh}</div>
+          <div class="badge-progress-text-sm">已激活</div>
+        </div>`;
+      }).join('')
+    : '<div class="empty-state" style="grid-column:1/-1;padding:24px 16px"><p style="font-size:0.78rem">还没有解锁，某个动作练习满 10 天即可点亮 ✨</p></div>';
 
-  // Super muscle memory badges (30 days)
+  // Super muscle memory badges (30 days) — only show earned
   const superEarned = [];
-  const superLocked = [];
   ACTIONS.forEach(a => {
     const td = getActionPracticeDays(a.id);
-    const earned = td >= 30;
-    const item = { action: a, days: td, earned };
-    if (earned) superEarned.push(item);
-    else superLocked.push(item);
+    if (td >= 30) superEarned.push({ action: a, days: td });
   });
-  superLocked.sort((a,b) => b.days - a.days);
-  const superAll = [...superEarned, ...superLocked];
 
-  document.getElementById('super-muscle-badges').innerHTML = superAll.map(({ action, days, earned }) => {
-    const pct = Math.min(100, (days / 30) * 100);
-    return `<div class="badge-card-sm ${earned ? 'earned super' : ''}">
-      <div class="badge-medal-sm">${earned ? '🔥' : '🔒'}</div>
-      <div class="badge-name-sm">${action.emoji} ${action.zh}</div>
-      <div class="badge-progress-bar-sm"><div class="badge-progress-fill" style="width:${pct}%"></div></div>
-      <div class="badge-progress-text-sm">${earned ? '已激活' : days + '/30天'}</div>
-    </div>`;
-  }).join('');
+  document.getElementById('super-muscle-badges').innerHTML = superEarned.length
+    ? superEarned.map(({ action }) => {
+        return `<div class="badge-card-sm earned super">
+          <div class="badge-medal-sm">🔥</div>
+          <div class="badge-name-sm">${action.emoji} ${action.zh}</div>
+          <div class="badge-progress-text-sm">已激活</div>
+        </div>`;
+      }).join('')
+    : '<div class="empty-state" style="grid-column:1/-1;padding:24px 16px"><p style="font-size:0.78rem">还没有解锁，某个动作练习满 30 天即可点亮 🔥</p></div>';
 }
 
 // ─── Duration Picker ───
