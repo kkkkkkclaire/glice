@@ -399,7 +399,7 @@ function openDetail(actionId) {
       <div class="detail-en">${a.en}</div>
       <span class="detail-category">${catL}</span>
       ${medal?'<div style="margin-top:8px;font-size:1.1rem">🏅 肌肉记忆勋章</div>':''}
-      <button class="detail-edit-btn" onclick="toggleEditAction('${a.id}')">编辑名称/图标 ✏️</button>
+      <button class="detail-edit-btn" onclick="toggleEditAction('${a.id}')">编辑名称/图标</button>
     </div>
     <div id="detail-edit-box" class="detail-edit-form">
       <input type="text" id="edit-action-emoji" value="${a.emoji}" maxlength="4" placeholder="图标 (如⭐)" style="font-size:1.5rem">
