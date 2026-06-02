@@ -581,9 +581,33 @@ const DAY_BADGES = [
   { days: 365, emoji: '🏆', name: '全年无休',   desc: '上冰满365天' },
 ];
 
+let reportYear = null, reportMonth = null;
+
 function renderAchievements(){
+  const now = new Date();
+  if (reportYear === null) {
+    reportYear = now.getFullYear();
+    reportMonth = now.getMonth();
+  }
+
+  const isCurrentMonth = (reportYear === now.getFullYear() && reportMonth === now.getMonth());
+  const tm = `${reportYear}-${String(reportMonth+1).padStart(2,'0')}`;
+
+  const titleEl = document.getElementById('report-title');
+  const nextBtn = document.getElementById('report-next-btn');
+  if (titleEl && nextBtn) {
+    if (isCurrentMonth) {
+      titleEl.innerHTML = '📊 本月练习报告';
+      nextBtn.style.opacity = '0.3';
+      nextBtn.disabled = true;
+    } else {
+      titleEl.innerHTML = `📊 ${reportYear}年${reportMonth+1}月报告`;
+      nextBtn.style.opacity = '1';
+      nextBtn.disabled = false;
+    }
+  }
+
   const monthlyActions=new Set();
-  const tm=dateStr().substring(0,7);
   let md=0;
   let monthDuration=0;
   let totalDuration=0;
@@ -615,12 +639,12 @@ function renderAchievements(){
 
   document.getElementById('report-content').innerHTML=`
     <div class="report-stats">
-      <div class="report-stat"><div class="big-num">${md}</div><div class="label">本月上冰天数</div></div>
-      <div class="report-stat"><div class="big-num">${(monthDuration/60).toFixed(1)}</div><div class="label">本月上冰(小时)</div></div>
-      <div class="report-stat"><div class="big-num">${newLearnCount}</div><div class="label">本月新学</div></div>
-      <div class="report-stat"><div class="big-num">${mc2}</div><div class="label">已熟练</div></div>
+      <div class="report-stat"><div class="big-num">${md}</div><div class="label">${isCurrentMonth?'本月':'当月'}上冰天数</div></div>
+      <div class="report-stat"><div class="big-num">${(monthDuration/60).toFixed(1)}</div><div class="label">${isCurrentMonth?'本月':'当月'}上冰(小时)</div></div>
+      <div class="report-stat"><div class="big-num">${newLearnCount}</div><div class="label">${isCurrentMonth?'本月':'当月'}新学</div></div>
+      <div class="report-stat"><div class="big-num">${mc2}</div><div class="label">累计已熟练</div></div>
     </div>
-    ${topA?`<p style="text-align:center;margin-top:14px;color:var(--text-secondary);font-size:0.82rem">🏆 本月之星：<strong>${topA.emoji} ${topA.zh}</strong>（${top[1]}次）</p>`:'<p style="text-align:center;margin-top:14px;color:var(--text-muted);font-size:0.78rem">本月暂无练习记录</p>'}
+    ${topA?`<p style="text-align:center;margin-top:14px;color:var(--text-secondary);font-size:0.82rem">🏆 ${isCurrentMonth?'本月':'当月'}之星：<strong>${topA.emoji} ${topA.zh}</strong>（${top[1]}次）</p>`:`<p style="text-align:center;margin-top:14px;color:var(--text-muted);font-size:0.78rem">${isCurrentMonth?'本月':'当月'}暂无练习记录</p>`}
   `;
 
   // Hero stats
@@ -690,6 +714,20 @@ function renderAchievements(){
         </div>`;
       }).join('')
     : '<div class="empty-state" style="grid-column:1/-1;padding:24px 16px"><p style="font-size:0.78rem">还没有解锁，某个动作练习满 30 天即可点亮 🔥</p></div>';
+}
+
+function prevReportMonth() {
+  reportMonth--;
+  if (reportMonth < 0) { reportMonth = 11; reportYear--; }
+  renderAchievements();
+}
+
+function nextReportMonth() {
+  const now = new Date();
+  if (reportYear === now.getFullYear() && reportMonth === now.getMonth()) return;
+  reportMonth++;
+  if (reportMonth > 11) { reportMonth = 0; reportYear++; }
+  renderAchievements();
 }
 
 // ─── Duration Picker ───
