@@ -49,7 +49,7 @@ function applyTheme(theme) {
   if (theme === 'system') {
     const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    if(icon) icon.textContent = '💻';
+    if(icon) icon.innerHTML = '<span style="font-size:0.65rem;font-weight:700;color:var(--text-muted);display:inline-block;width:18px;text-align:center;">AUTO</span>';
   } else {
     document.documentElement.setAttribute('data-theme', theme);
     if(icon) icon.textContent = theme === 'dark' ? '🌙' : '☀️';
