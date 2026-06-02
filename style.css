@@ -144,7 +144,7 @@ body::before {
 }
 
 /* ─── Header ─── */
-.page-header { padding: var(--sp-xl) 0 var(--sp-lg); }
+.page-header { padding: var(--sp-xl) 0 var(--sp-lg); position: relative; }
 .page-header h1 {
   font-family: var(--font-display);
   font-size: 1.65rem; font-weight: 700; letter-spacing: -0.02em;
@@ -862,6 +862,8 @@ body::before {
   top: var(--sp-xl);
   right: var(--sp-md);
   z-index: 10;
+  /* Align vertically with the h1 line */
+  margin-top: 4px;
 }
 .theme-toggle-btn {
   background: var(--bg-card);
@@ -918,12 +920,28 @@ body::before {
 }
 .detail-edit-btn:hover { background: var(--accent-light); }
 .detail-edit-form {
-  display: flex; flex-direction: column; gap: 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
   margin-top: 12px;
-  padding: 14px;
+  padding: 18px;
   background: var(--bg-deep);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
+  /* Smooth transition */
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  padding: 0 18px;
+  margin-top: 0;
+  transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.3s ease,
+              padding 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+              margin-top 0.35s ease;
+}
+.detail-edit-form.open {
+  max-height: 300px;
+  opacity: 1;
+  padding: 18px;
+  margin-top: 12px;
 }
 .detail-edit-form input {
   padding: 8px 12px;
@@ -933,10 +951,15 @@ body::before {
   color: var(--text-primary);
   font-family: var(--font-body);
   font-size: 16px;
+  text-align: center;
+  width: 100%;
+  max-width: 240px;
 }
 .detail-edit-form input:focus { outline: none; border-color: var(--accent); }
 .detail-edit-actions {
   display: flex; gap: 8px;
+  width: 100%;
+  max-width: 240px;
 }
 .detail-edit-actions button {
   flex: 1; padding: 8px 0;

@@ -373,22 +373,19 @@ function openDetail(actionId) {
   const catL=CATEGORIES.find(c=>c.id===a.cat)?.label||'';
   const medal=td>=10;
   const delBtn=a.custom?`<button class="btn-secondary" style="margin-top:12px;color:#EF5350;border-color:#EF5350;width:100%" onclick="deleteCustomAction('${a.id}')">删除此自定义动作</button>`:'';
-  
-  // All actions support long press to edit
-  const longPressEvents = `onmousedown="startLongPress('${a.id}')" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()" ontouchstart="startLongPress('${a.id}')" ontouchend="cancelLongPress()" ontouchcancel="cancelLongPress()"`;
 
   document.getElementById('detail-content').innerHTML=`
     <button class="detail-back" onclick="closeDetail()">‹ 返回</button>
-    <div class="detail-header" id="detail-display-box" ${longPressEvents}>
+    <div class="detail-header" id="detail-display-box">
       <div class="detail-emoji">${a.emoji}</div>
       <h2>${a.zh}</h2>
       <div class="detail-en">${a.en}</div>
       <span class="detail-category">${catL}</span>
       ${medal?'<div style="margin-top:8px;font-size:1.1rem">🏅 肌肉记忆勋章</div>':''}
-      <p style="font-size:0.7rem;color:var(--text-muted);margin-top:8px">长按此处编辑动作名称与图标</p>
+      <button class="detail-edit-btn" onclick="toggleEditAction('${a.id}')">编辑名称/图标 ✏️</button>
     </div>
-    <div id="detail-edit-box" style="display:none;" class="detail-edit-form">
-      <input type="text" id="edit-action-emoji" value="${a.emoji}" maxlength="4" placeholder="图标 (如⭐)" style="width:80px;text-align:center;font-size:1.5rem">
+    <div id="detail-edit-box" class="detail-edit-form">
+      <input type="text" id="edit-action-emoji" value="${a.emoji}" maxlength="4" placeholder="图标 (如⭐)" style="font-size:1.5rem">
       <input type="text" id="edit-action-zh" value="${a.zh}" placeholder="动作名称（中文）">
       <input type="text" id="edit-action-en" value="${a.en}" placeholder="English Name (optional)">
       <div class="detail-edit-actions">
@@ -450,27 +447,9 @@ async function deleteCustomAction(id){
   switchPage('library');
 }
 
-let longPressTimer;
-function startLongPress(id) {
-  longPressTimer = setTimeout(() => {
-    try { if (navigator.vibrate) navigator.vibrate(50); } catch(e) {}
-    toggleEditAction(id);
-  }, 600); // 600ms long press
-}
-function cancelLongPress() {
-  clearTimeout(longPressTimer);
-}
-
 function toggleEditAction(id) {
-  const disp = document.getElementById('detail-display-box');
   const edit = document.getElementById('detail-edit-box');
-  if (edit.style.display === 'none') {
-    disp.style.display = 'none';
-    edit.style.display = 'flex';
-  } else {
-    edit.style.display = 'none';
-    disp.style.display = 'block';
-  }
+  edit.classList.toggle('open');
 }
 
 async function saveEditAction(id) {
