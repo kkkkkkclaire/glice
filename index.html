@@ -128,10 +128,9 @@
       <div class="report-card">
         <div class="report-header-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;position:relative;">
           <button class="btn-secondary" style="padding:4px 12px;font-size:1rem;border-color:var(--border);" onclick="prevReportMonth()">‹</button>
-          <label style="position:absolute; left:50%; transform:translateX(-50%); cursor:pointer; margin-bottom:0; display:block;">
+          <div style="position:absolute; left:50%; transform:translateX(-50%); cursor:pointer; display:block;" onclick="openMonthPicker()">
             <h3 id="report-title" style="margin-bottom:0; white-space:nowrap;">本月练习报告</h3>
-            <input type="month" id="report-month-picker" style="position:absolute; opacity:0; left:0; top:0; width:100%; height:100%; cursor:pointer;" onchange="onReportMonthPicked(this.value)">
-          </label>
+          </div>
           <button class="btn-secondary" id="report-next-btn" style="padding:4px 12px;font-size:1rem;border-color:var(--border);" onclick="nextReportMonth()" disabled>›</button>
         </div>
         <div id="report-content"></div>
@@ -211,6 +210,33 @@
           <div class="picker-column">
             <div class="picker-scroll" id="minute-scroll"></div>
             <span class="picker-unit">分</span>
+          </div>
+          <div class="picker-highlight-bar"></div>
+          <div class="picker-fade picker-fade-top"></div>
+          <div class="picker-fade picker-fade-bottom"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Month Picker -->
+  <div id="month-picker-overlay" class="picker-overlay">
+    <div class="picker-mask" onclick="closeMonthPicker()"></div>
+    <div class="picker-modal">
+      <div class="picker-header">
+        <button class="picker-cancel" onclick="closeMonthPicker()">取消</button>
+        <span class="picker-title">选择报告月份</span>
+        <button class="picker-confirm" onclick="confirmMonthPicker()">确定</button>
+      </div>
+      <div class="picker-body">
+        <div class="picker-wheels">
+          <div class="picker-column">
+            <div class="picker-scroll" id="year-scroll"></div>
+            <span class="picker-unit">年</span>
+          </div>
+          <div class="picker-column">
+            <div class="picker-scroll" id="month-scroll"></div>
+            <span class="picker-unit">月</span>
           </div>
           <div class="picker-highlight-bar"></div>
           <div class="picker-fade picker-fade-top"></div>

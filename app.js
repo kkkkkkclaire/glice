@@ -607,10 +607,6 @@ function renderAchievements(){
     }
   }
 
-  // Update the picker value to match current report month
-  const pickerEl = document.getElementById('report-month-picker');
-  if (pickerEl) pickerEl.value = tm;
-
   const monthlyActions=new Set();
   let md=0;
   let monthDuration=0;
@@ -731,22 +727,50 @@ function nextReportMonth() {
   renderAchievements();
 }
 
-function onReportMonthPicked(val) {
-  if (!val) return;
-  const parts = val.split('-');
-  if (parts.length === 2) {
-    reportYear = parseInt(parts[0], 10);
-    reportMonth = parseInt(parts[1], 10) - 1;
-    
-    // Prevent picking future months
-    const now = new Date();
-    if (reportYear > now.getFullYear() || (reportYear === now.getFullYear() && reportMonth > now.getMonth())) {
-      reportYear = now.getFullYear();
-      reportMonth = now.getMonth();
-    }
-    
-    renderAchievements();
+let pickerYear = new Date().getFullYear();
+let pickerMonth = new Date().getMonth() + 1;
+const YEAR_VALUES = Array.from({length: 10}, (_, i) => new Date().getFullYear() - 5 + i);
+const MONTH_VALUES = Array.from({length: 12}, (_, i) => i + 1);
+
+function openMonthPicker() {
+  const now = new Date();
+  pickerYear = reportYear !== null ? reportYear : now.getFullYear();
+  pickerMonth = reportMonth !== null ? reportMonth + 1 : now.getMonth() + 1;
+  
+  populateMonthPickerColumns();
+  const overlay = document.getElementById('month-picker-overlay');
+  overlay.classList.add('show');
+  
+  setTimeout(() => {
+    document.getElementById('year-scroll').scrollTop = Math.max(0, YEAR_VALUES.indexOf(pickerYear)) * PICKER_ITEM_H;
+    document.getElementById('month-scroll').scrollTop = Math.max(0, MONTH_VALUES.indexOf(pickerMonth)) * PICKER_ITEM_H;
+  }, 60);
+}
+
+function closeMonthPicker() {
+  document.getElementById('month-picker-overlay').classList.remove('show');
+}
+
+function confirmMonthPicker() {
+  const now = new Date();
+  if (pickerYear > now.getFullYear() || (pickerYear === now.getFullYear() && pickerMonth - 1 > now.getMonth())) {
+    reportYear = now.getFullYear();
+    reportMonth = now.getMonth();
+  } else {
+    reportYear = pickerYear;
+    reportMonth = pickerMonth - 1;
   }
+  closeMonthPicker();
+  renderAchievements();
+}
+
+function populateMonthPickerColumns() {
+  const yearScroll = document.getElementById('year-scroll');
+  const monthScroll = document.getElementById('month-scroll');
+  yearScroll.innerHTML = generatePickerItems(YEAR_VALUES);
+  monthScroll.innerHTML = generatePickerItems(MONTH_VALUES);
+  setupPickerScroll(yearScroll, YEAR_VALUES, 'year');
+  setupPickerScroll(monthScroll, MONTH_VALUES, 'month');
 }
 
 // ─── Duration Picker ───
@@ -796,7 +820,9 @@ function setupPickerScroll(el, values, type) {
     clearTimeout(scrollTimer);
     scrollTimer = setTimeout(() => {
       if (type === 'hour') pickerHour = values[clamped];
-      else pickerMinute = values[clamped];
+      else if (type === 'minute') pickerMinute = values[clamped];
+      else if (type === 'year') pickerYear = values[clamped];
+      else if (type === 'month') pickerMonth = values[clamped];
     }, 100);
   };
 }
