@@ -13,8 +13,56 @@ const PICKER_ITEM_H = 44;
 const HOUR_VALUES = [0, 1, 2, 3, 4, 5];
 const MINUTE_VALUES = Array.from({length: 60}, (_, i) => i);
 
+// ─── Theme State ───
+let currentTheme = localStorage.getItem('glice_theme') || 'system';
+
 function playTick() {
   try { if (navigator.vibrate) navigator.vibrate(1); } catch(e) {}
+}
+
+// ─── Theme Logic ───
+function initTheme() {
+  applyTheme(currentTheme);
+  const mq = window.matchMedia('(prefers-color-scheme: dark)');
+  mq.addEventListener('change', (e) => {
+    if (currentTheme === 'system') {
+      document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+    }
+  });
+  // Close picker on outside click
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.theme-toggle-wrap')) {
+      document.getElementById('theme-picker')?.classList.remove('show');
+    }
+  });
+}
+
+function applyTheme(theme) {
+  currentTheme = theme;
+  localStorage.setItem('glice_theme', theme);
+  const icon = document.getElementById('theme-icon');
+  
+  document.querySelectorAll('.theme-option').forEach(el => {
+    el.classList.toggle('active', el.dataset.themeVal === theme);
+  });
+
+  if (theme === 'system') {
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+    if(icon) icon.textContent = '💻';
+  } else {
+    document.documentElement.setAttribute('data-theme', theme);
+    if(icon) icon.textContent = theme === 'dark' ? '🌙' : '☀️';
+  }
+}
+
+function toggleThemeMenu() {
+  document.getElementById('theme-picker').classList.toggle('show');
+}
+
+function setTheme(theme) {
+  applyTheme(theme);
+  document.getElementById('theme-picker').classList.remove('show');
 }
 
 // ─── IndexedDB ───
@@ -324,16 +372,27 @@ function openDetail(actionId) {
   const m=masteryMap[a.id]||'unlearned', td=getActionPracticeDays(a.id), rd=getRecentPracticeDays(a.id);
   const catL=CATEGORIES.find(c=>c.id===a.cat)?.label||'';
   const medal=td>=10;
-  const delBtn=a.custom?`<button class="btn-secondary" style="margin-top:12px;color:#EF5350;border-color:#EF5350" onclick="deleteCustomAction('${a.id}')">删除此自定义动作</button>`:'';
+  const delBtn=a.custom?`<button class="btn-secondary" style="margin-top:12px;color:#EF5350;border-color:#EF5350;width:100%" onclick="deleteCustomAction('${a.id}')">删除此自定义动作</button>`:'';
+  const editBtn=a.custom?`<button class="detail-edit-btn" onclick="toggleEditAction('${a.id}')">编辑名称/图标 ✏️</button>`:'';
 
   document.getElementById('detail-content').innerHTML=`
     <button class="detail-back" onclick="closeDetail()">‹ 返回</button>
-    <div class="detail-header">
+    <div class="detail-header" id="detail-display-box">
       <div class="detail-emoji">${a.emoji}</div>
       <h2>${a.zh}</h2>
       <div class="detail-en">${a.en}</div>
       <span class="detail-category">${catL}</span>
       ${medal?'<div style="margin-top:8px;font-size:1.1rem">🏅 肌肉记忆勋章</div>':''}
+      <div style="margin-top:8px">${editBtn}</div>
+    </div>
+    <div id="detail-edit-box" style="display:none;" class="detail-edit-form">
+      <input type="text" id="edit-action-emoji" value="${a.emoji}" maxlength="4" placeholder="图标 (如⭐)" style="width:80px;text-align:center;font-size:1.5rem">
+      <input type="text" id="edit-action-zh" value="${a.zh}" placeholder="动作名称（中文）">
+      <input type="text" id="edit-action-en" value="${a.en}" placeholder="English Name (optional)">
+      <div class="detail-edit-actions">
+        <button class="cancel-edit" onclick="toggleEditAction('${a.id}')">取消</button>
+        <button class="save-edit" onclick="saveEditAction('${a.id}')">保存修改</button>
+      </div>
     </div>
     <div class="mastery-selector">
       <button class="mastery-option ${m==='unlearned'?'active-unlearned':''}" onclick="setMastery('${a.id}','unlearned')"><span class="mastery-dot unlearned"></span>未开始</button>
@@ -387,6 +446,39 @@ async function deleteCustomAction(id){
   ACTIONS=ACTIONS.filter(a=>a.id!==id);
   toast('已删除自定义动作');
   switchPage('library');
+}
+
+function toggleEditAction(id) {
+  const disp = document.getElementById('detail-display-box');
+  const edit = document.getElementById('detail-edit-box');
+  if (edit.style.display === 'none') {
+    disp.style.display = 'none';
+    edit.style.display = 'flex';
+  } else {
+    edit.style.display = 'none';
+    disp.style.display = 'block';
+  }
+}
+
+async function saveEditAction(id) {
+  const zh = document.getElementById('edit-action-zh').value.trim();
+  const en = document.getElementById('edit-action-en').value.trim();
+  const emoji = document.getElementById('edit-action-emoji').value.trim() || '⭐';
+  if (!zh) { toast('名称不能为空'); return; }
+
+  // Update in state
+  const act = customActions.find(a => a.id === id);
+  if (act) {
+    act.zh = zh; act.en = en; act.emoji = emoji;
+    await dbPut('customActions', act);
+  }
+  const mainAct = ACTIONS.find(a => a.id === id);
+  if (mainAct) {
+    mainAct.zh = zh; mainAct.en = en; mainAct.emoji = emoji;
+  }
+  
+  toast('✅ 修改已保存');
+  openDetail(id); // refresh
 }
 
 // ─── Notes ───
@@ -638,6 +730,7 @@ function setupPickerScroll(el, values, type) {
 
 // ─── Init ───
 async function init(){
+  initTheme();
   await openDB();
   const ml=await dbGetAll('mastery');ml.forEach(m=>{masteryMap[m.actionId]=m.level; if(m.masteredDate) masteryDateMap[m.actionId]=m.masteredDate;});
   checkinData=await dbGetAll('checkins');

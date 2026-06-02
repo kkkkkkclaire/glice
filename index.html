@@ -17,7 +17,17 @@
   <div id="app">
 
     <!-- Training -->
-    <section id="page-training" class="page active">
+    <section id="page-training" class="page active" style="position:relative">
+      <div class="theme-toggle-wrap">
+        <button class="theme-toggle-btn" onclick="toggleThemeMenu()" aria-label="切换主题">
+          <span id="theme-icon">☀️</span>
+        </button>
+        <div id="theme-picker" class="theme-picker">
+          <button class="theme-option" data-theme-val="light" onclick="setTheme('light')">☀️ 浅色模式</button>
+          <button class="theme-option" data-theme-val="dark" onclick="setTheme('dark')">🌙 深色模式</button>
+          <button class="theme-option" data-theme-val="system" onclick="setTheme('system')">💻 跟随系统</button>
+        </div>
+      </div>
       <div class="page-header">
         <h1>❄️ 训练台</h1>
         <p>记录每一次上冰，见证你的成长</p>
