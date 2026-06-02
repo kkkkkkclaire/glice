@@ -597,15 +597,19 @@ function renderAchievements(){
   const nextBtn = document.getElementById('report-next-btn');
   if (titleEl && nextBtn) {
     if (isCurrentMonth) {
-      titleEl.innerHTML = '📊 本月练习报告';
+      titleEl.innerHTML = '✨ 本月练习报告';
       nextBtn.style.opacity = '0.3';
       nextBtn.disabled = true;
     } else {
-      titleEl.innerHTML = `📊 ${reportYear}年${reportMonth+1}月报告`;
+      titleEl.innerHTML = `✨ ${reportYear}年${reportMonth+1}月报告`;
       nextBtn.style.opacity = '1';
       nextBtn.disabled = false;
     }
   }
+
+  // Update the picker value to match current report month
+  const pickerEl = document.getElementById('report-month-picker');
+  if (pickerEl) pickerEl.value = tm;
 
   const monthlyActions=new Set();
   let md=0;
@@ -635,14 +639,11 @@ function renderAchievements(){
     const allDates=checkinData.filter(c=>c.actions.includes(id)).map(c=>c.date).sort();
     if(allDates.length>0 && allDates[0].startsWith(tm)) newLearnCount++;
   });
-  const mc2=Object.values(masteryMap).filter(v=>v==='mastered').length;
-
   document.getElementById('report-content').innerHTML=`
     <div class="report-stats">
       <div class="report-stat"><div class="big-num">${md}</div><div class="label">${isCurrentMonth?'本月':'当月'}上冰天数</div></div>
       <div class="report-stat"><div class="big-num">${(monthDuration/60).toFixed(1)}</div><div class="label">${isCurrentMonth?'本月':'当月'}上冰(小时)</div></div>
       <div class="report-stat"><div class="big-num">${newLearnCount}</div><div class="label">${isCurrentMonth?'本月':'当月'}新学</div></div>
-      <div class="report-stat"><div class="big-num">${mc2}</div><div class="label">累计已熟练</div></div>
     </div>
     ${topA?`<p style="text-align:center;margin-top:14px;color:var(--text-secondary);font-size:0.82rem">🏆 ${isCurrentMonth?'本月':'当月'}之星：<strong>${topA.emoji} ${topA.zh}</strong>（${top[1]}次）</p>`:`<p style="text-align:center;margin-top:14px;color:var(--text-muted);font-size:0.78rem">${isCurrentMonth?'本月':'当月'}暂无练习记录</p>`}
   `;
@@ -728,6 +729,24 @@ function nextReportMonth() {
   reportMonth++;
   if (reportMonth > 11) { reportMonth = 0; reportYear++; }
   renderAchievements();
+}
+
+function onReportMonthPicked(val) {
+  if (!val) return;
+  const parts = val.split('-');
+  if (parts.length === 2) {
+    reportYear = parseInt(parts[0], 10);
+    reportMonth = parseInt(parts[1], 10) - 1;
+    
+    // Prevent picking future months
+    const now = new Date();
+    if (reportYear > now.getFullYear() || (reportYear === now.getFullYear() && reportMonth > now.getMonth())) {
+      reportYear = now.getFullYear();
+      reportMonth = now.getMonth();
+    }
+    
+    renderAchievements();
+  }
 }
 
 // ─── Duration Picker ───

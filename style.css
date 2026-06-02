@@ -527,7 +527,7 @@ body::before {
   border-radius: var(--r-lg); padding: var(--sp-lg); margin-bottom: var(--sp-md);
 }
 .report-card h3 { font-family: var(--font-display); font-weight: 600; font-size: 1rem; margin-bottom: var(--sp-md); }
-.report-stats { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-sm); }
+.report-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-sm); }
 .report-stat {
   text-align: center; padding: var(--sp-md);
   background: rgba(255,255,255,0.7); border-radius: var(--r-md);

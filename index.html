@@ -128,7 +128,10 @@
       <div class="report-card">
         <div class="report-header-row" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
           <button class="btn-secondary" style="padding:4px 12px;font-size:1rem;border-color:var(--border);" onclick="prevReportMonth()">‹</button>
-          <h3 id="report-title" style="margin-bottom:0">📊 本月练习报告</h3>
+          <label style="position:relative; cursor:pointer; margin-bottom:0; display:block;">
+            <h3 id="report-title" style="margin-bottom:0">✨ 本月练习报告</h3>
+            <input type="month" id="report-month-picker" style="position:absolute; opacity:0; left:0; top:0; width:100%; height:100%; cursor:pointer;" onchange="onReportMonthPicked(this.value)">
+          </label>
           <button class="btn-secondary" id="report-next-btn" style="padding:4px 12px;font-size:1rem;border-color:var(--border);" onclick="nextReportMonth()" disabled>›</button>
         </div>
         <div id="report-content"></div>
