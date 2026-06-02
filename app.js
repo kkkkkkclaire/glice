@@ -49,7 +49,7 @@ function applyTheme(theme) {
   if (theme === 'system') {
     const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    if(icon) icon.innerHTML = '<span style="font-size:0.65rem;font-weight:700;color:var(--text-muted);">AUTO</span>';
+    if(icon) icon.textContent = '🔄';
   } else {
     document.documentElement.setAttribute('data-theme', theme);
     if(icon) icon.textContent = theme === 'dark' ? '🌙' : '☀️';
@@ -374,8 +374,8 @@ function openDetail(actionId) {
   const medal=td>=10;
   const delBtn=a.custom?`<button class="btn-secondary" style="margin-top:12px;color:#EF5350;border-color:#EF5350;width:100%" onclick="deleteCustomAction('${a.id}')">删除此自定义动作</button>`:'';
   
-  // Only bind long press events if it's a custom action
-  const longPressEvents = a.custom ? `onmousedown="startLongPress('${a.id}')" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()" ontouchstart="startLongPress('${a.id}')" ontouchend="cancelLongPress()" ontouchcancel="cancelLongPress()"` : '';
+  // All actions support long press to edit
+  const longPressEvents = `onmousedown="startLongPress('${a.id}')" onmouseup="cancelLongPress()" onmouseleave="cancelLongPress()" ontouchstart="startLongPress('${a.id}')" ontouchend="cancelLongPress()" ontouchcancel="cancelLongPress()"`;
 
   document.getElementById('detail-content').innerHTML=`
     <button class="detail-back" onclick="closeDetail()">‹ 返回</button>
@@ -385,7 +385,7 @@ function openDetail(actionId) {
       <div class="detail-en">${a.en}</div>
       <span class="detail-category">${catL}</span>
       ${medal?'<div style="margin-top:8px;font-size:1.1rem">🏅 肌肉记忆勋章</div>':''}
-      ${a.custom ? '<p style="font-size:0.7rem;color:var(--text-muted);margin-top:8px">长按此处编辑动作名称与图标</p>' : ''}
+      <p style="font-size:0.7rem;color:var(--text-muted);margin-top:8px">长按此处编辑动作名称与图标</p>
     </div>
     <div id="detail-edit-box" style="display:none;" class="detail-edit-form">
       <input type="text" id="edit-action-emoji" value="${a.emoji}" maxlength="4" placeholder="图标 (如⭐)" style="width:80px;text-align:center;font-size:1.5rem">
@@ -479,15 +479,22 @@ async function saveEditAction(id) {
   const emoji = document.getElementById('edit-action-emoji').value.trim() || '⭐';
   if (!zh) { toast('名称不能为空'); return; }
 
-  // Update in state
+  // Update runtime state
+  const mainAct = ACTIONS.find(a => a.id === id);
+  if (mainAct) {
+    mainAct.zh = zh; mainAct.en = en; mainAct.emoji = emoji;
+  }
+
+  // Persist: custom action -> IndexedDB, built-in action -> localStorage overrides
   const act = customActions.find(a => a.id === id);
   if (act) {
     act.zh = zh; act.en = en; act.emoji = emoji;
     await dbPut('customActions', act);
-  }
-  const mainAct = ACTIONS.find(a => a.id === id);
-  if (mainAct) {
-    mainAct.zh = zh; mainAct.en = en; mainAct.emoji = emoji;
+  } else {
+    // Built-in action override
+    const overrides = JSON.parse(localStorage.getItem('glice_action_overrides') || '{}');
+    overrides[id] = { zh, en, emoji };
+    localStorage.setItem('glice_action_overrides', JSON.stringify(overrides));
   }
   
   toast('✅ 修改已保存');
@@ -750,6 +757,12 @@ async function init(){
   notesData=await dbGetAll('notes');
   customActions=await dbGetAll('customActions');
   customActions.forEach(a=>{a.custom=true;ACTIONS.push(a);});
+  // Apply saved overrides for built-in actions
+  const overrides = JSON.parse(localStorage.getItem('glice_action_overrides') || '{}');
+  Object.entries(overrides).forEach(([id, o]) => {
+    const a = ACTIONS.find(x => x.id === id);
+    if (a) { a.zh = o.zh; a.en = o.en; a.emoji = o.emoji; }
+  });
   document.querySelectorAll('.nav-btn').forEach(b=>b.addEventListener('click',()=>switchPage(b.dataset.page)));
   document.querySelectorAll('.filter-pill').forEach(p=>p.addEventListener('click',()=>setFilter(p.dataset.filter)));
   switchPage('training');
