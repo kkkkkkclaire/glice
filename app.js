@@ -140,7 +140,24 @@ function renderLibrary() {
 
   if (!acts.length) { grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">❄️</div><p>暂无匹配的动作</p></div>'; return; }
 
-  grid.innerHTML = acts.map(a => {
+  // Sort actions: learning -> mastered -> unlearned, then by latest activity
+  const actsWithMeta = acts.map(a => {
+    const m = masteryMap[a.id] || 'unlearned';
+    const rank = m === 'learning' ? 1 : (m === 'mastered' ? 2 : 3);
+    let latest = '';
+    checkinData.forEach(c => { if(c.actions.includes(a.id) && c.date > latest) latest = c.date; });
+    notesData.forEach(n => { if(n.actionId === a.id && n.date > latest) latest = n.date; });
+    return { a, rank, latest };
+  });
+
+  actsWithMeta.sort((x, y) => {
+    if (x.rank !== y.rank) return x.rank - y.rank;
+    if (x.latest !== y.latest) return y.latest.localeCompare(x.latest);
+    return x.a.id.localeCompare(y.a.id);
+  });
+
+  grid.innerHTML = actsWithMeta.map(item => {
+    const a = item.a;
     const m=masteryMap[a.id]||'unlearned', days=getActionPracticeDays(a.id);
     const badge = a.custom ? '<span class="custom-badge">自定义</span>' : '';
     return `<div class="card action-card" onclick="openDetail('${a.id}')">

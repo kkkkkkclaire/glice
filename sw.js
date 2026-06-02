@@ -1,4 +1,4 @@
-const CACHE_NAME = 'glice-v13';
+const CACHE_NAME = 'glice-v14';
 const ASSETS = [
   '/',
   '/index.html',
