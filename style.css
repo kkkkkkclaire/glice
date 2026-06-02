@@ -863,7 +863,7 @@ body::before {
   right: var(--sp-md);
   z-index: 10;
   /* Align vertically with the h1 line */
-  margin-top: 4px;
+  margin-top: 12px;
 }
 .theme-toggle-btn {
   background: var(--bg-card);
