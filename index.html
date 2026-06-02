@@ -94,11 +94,21 @@
         <p>你的滑冰荣誉殿堂</p>
       </div>
       
-      <div class="total-time-card">
-        <div class="total-time-icon">⏱️</div>
-        <div class="total-time-info">
-          <div class="total-time-label">累计上冰总时长</div>
-          <div class="total-time-value" id="total-ice-time">0 小时</div>
+      <div class="hero-stats-card">
+        <div class="hero-stat-item">
+          <div class="hero-stat-icon">⏱️</div>
+          <div class="hero-stat-info">
+            <div class="hero-stat-label">累计冰时</div>
+            <div class="hero-stat-value" id="total-ice-time">0 小时</div>
+          </div>
+        </div>
+        <div class="hero-stat-divider"></div>
+        <div class="hero-stat-item">
+          <div class="hero-stat-icon">📅</div>
+          <div class="hero-stat-info">
+            <div class="hero-stat-label">总上冰天数</div>
+            <div class="hero-stat-value" id="total-ice-days">0 天</div>
+          </div>
         </div>
       </div>
 
@@ -106,8 +116,28 @@
         <h3>📊 本月练习报告</h3>
         <div id="report-content"></div>
       </div>
-      <h3 class="medal-wall-title">🏅 肌肉记忆勋章墙</h3>
-      <div id="medal-grid" class="medal-grid"></div>
+
+      <div class="badge-section">
+        <h3 class="badge-section-title">⏱️ 冰时勋章</h3>
+        <div id="time-badges" class="badge-row"></div>
+      </div>
+
+      <div class="badge-section">
+        <h3 class="badge-section-title">📅 上冰天数勋章</h3>
+        <div id="day-badges" class="badge-row"></div>
+      </div>
+
+      <div class="badge-section">
+        <h3 class="badge-section-title">💪 肌肉记忆勋章</h3>
+        <p class="badge-section-desc">某个动作练习 ≥ 10 天即可点亮，每个动作仅一次</p>
+        <div id="muscle-badges" class="badge-grid"></div>
+      </div>
+
+      <div class="badge-section">
+        <h3 class="badge-section-title">🔥 超级肌肉记忆勋章</h3>
+        <p class="badge-section-desc">某个动作练习 ≥ 30 天即可点亮，每个动作仅一次</p>
+        <div id="super-muscle-badges" class="badge-grid"></div>
+      </div>
     </section>
   </div>
 

@@ -456,6 +456,23 @@ function toggleSpeech(){
 }
 
 // ─── Achievements ───
+const TIME_BADGES = [
+  { hours: 10,  emoji: '🥉', name: '初入冰场',   desc: '累计冰时10小时' },
+  { hours: 30,  emoji: '🥈', name: '冰上行者',   desc: '累计冰时30小时' },
+  { hours: 50,  emoji: '🥇', name: '冰上精灵',   desc: '累计冰时50小时' },
+  { hours: 100, emoji: '🏅', name: '百时之约',   desc: '累计冰时100小时' },
+  { hours: 200, emoji: '💎', name: '钻石冰刃',   desc: '累计冰时200小时' },
+  { hours: 500, emoji: '👑', name: '冰上王者',   desc: '累计冰时500小时' },
+];
+const DAY_BADGES = [
+  { days: 10,  emoji: '🌱', name: '萌芽之星',   desc: '上冰满10天' },
+  { days: 30,  emoji: '🌿', name: '坚持一月',   desc: '上冰满30天' },
+  { days: 50,  emoji: '🌳', name: '半百打卡',   desc: '上冰满50天' },
+  { days: 100, emoji: '🔥', name: '百日征程',   desc: '上冰满100天' },
+  { days: 200, emoji: '⭐', name: '二百里程碑', desc: '上冰满200天' },
+  { days: 365, emoji: '🏆', name: '全年无休',   desc: '上冰满365天' },
+];
+
 function renderAchievements(){
   const monthlyActions=new Set();
   const tm=dateStr().substring(0,7);
@@ -472,6 +489,9 @@ function renderAchievements(){
       c.actions.forEach(a=>monthlyActions.add(a));
     }
   });
+
+  // Total unique ice days
+  const totalIceDays = new Set(checkinData.map(c=>c.date)).size;
 
   const ac={};
   checkinData.filter(c=>c.date.startsWith(tm)).forEach(c=>c.actions.forEach(a=>{ac[a]=(ac[a]||0)+1}));
@@ -495,12 +515,84 @@ function renderAchievements(){
     ${topA?`<p style="text-align:center;margin-top:14px;color:var(--text-secondary);font-size:0.82rem">🏆 本月之星：<strong>${topA.emoji} ${topA.zh}</strong>（${top[1]}次）</p>`:'<p style="text-align:center;margin-top:14px;color:var(--text-muted);font-size:0.78rem">本月暂无练习记录</p>'}
   `;
 
+  // Hero stats
   const totalTimeEl = document.getElementById('total-ice-time');
   if (totalTimeEl) totalTimeEl.textContent = (totalDuration/60).toFixed(1) + ' 小时';
+  const totalDaysEl = document.getElementById('total-ice-days');
+  if (totalDaysEl) totalDaysEl.textContent = totalIceDays + ' 天';
 
-  document.getElementById('medal-grid').innerHTML=ACTIONS.map(a=>{
-    const td=getActionPracticeDays(a.id),earned=td>=10;
-    return `<div class="medal-item ${earned?'earned':''}"><div class="medal-icon">${earned?'🏅':'🔒'}</div><div class="medal-name">${a.zh}</div><div class="medal-progress">${td}/10次</div></div>`;
+  const totalHours = totalDuration / 60;
+
+  // Time badges
+  document.getElementById('time-badges').innerHTML = TIME_BADGES.map(b => {
+    const earned = totalHours >= b.hours;
+    const pct = Math.min(100, (totalHours / b.hours) * 100);
+    return `<div class="badge-card ${earned ? 'earned' : ''}">
+      <div class="badge-medal">${earned ? b.emoji : '🔒'}</div>
+      <div class="badge-name">${b.name}</div>
+      <div class="badge-desc">${b.desc}</div>
+      <div class="badge-progress-bar"><div class="badge-progress-fill" style="width:${pct}%"></div></div>
+      <div class="badge-progress-text">${earned ? '已解锁 ✓' : Math.floor(totalHours) + '/' + b.hours + 'h'}</div>
+    </div>`;
+  }).join('');
+
+  // Day badges
+  document.getElementById('day-badges').innerHTML = DAY_BADGES.map(b => {
+    const earned = totalIceDays >= b.days;
+    const pct = Math.min(100, (totalIceDays / b.days) * 100);
+    return `<div class="badge-card ${earned ? 'earned' : ''}">
+      <div class="badge-medal">${earned ? b.emoji : '🔒'}</div>
+      <div class="badge-name">${b.name}</div>
+      <div class="badge-desc">${b.desc}</div>
+      <div class="badge-progress-bar"><div class="badge-progress-fill" style="width:${pct}%"></div></div>
+      <div class="badge-progress-text">${earned ? '已解锁 ✓' : totalIceDays + '/' + b.days + '天'}</div>
+    </div>`;
+  }).join('');
+
+  // Muscle memory badges (10 days)
+  const muscleEarned = [];
+  const muscleLocked = [];
+  ACTIONS.forEach(a => {
+    const td = getActionPracticeDays(a.id);
+    const earned = td >= 10;
+    const item = { action: a, days: td, earned };
+    if (earned) muscleEarned.push(item);
+    else muscleLocked.push(item);
+  });
+  muscleLocked.sort((a,b) => b.days - a.days);
+  const muscleAll = [...muscleEarned, ...muscleLocked];
+
+  document.getElementById('muscle-badges').innerHTML = muscleAll.map(({ action, days, earned }) => {
+    const pct = Math.min(100, (days / 10) * 100);
+    return `<div class="badge-card-sm ${earned ? 'earned' : ''}">
+      <div class="badge-medal-sm">${earned ? '💪' : '🔒'}</div>
+      <div class="badge-name-sm">${action.emoji} ${action.zh}</div>
+      <div class="badge-progress-bar-sm"><div class="badge-progress-fill" style="width:${pct}%"></div></div>
+      <div class="badge-progress-text-sm">${earned ? '已激活' : days + '/10天'}</div>
+    </div>`;
+  }).join('');
+
+  // Super muscle memory badges (30 days)
+  const superEarned = [];
+  const superLocked = [];
+  ACTIONS.forEach(a => {
+    const td = getActionPracticeDays(a.id);
+    const earned = td >= 30;
+    const item = { action: a, days: td, earned };
+    if (earned) superEarned.push(item);
+    else superLocked.push(item);
+  });
+  superLocked.sort((a,b) => b.days - a.days);
+  const superAll = [...superEarned, ...superLocked];
+
+  document.getElementById('super-muscle-badges').innerHTML = superAll.map(({ action, days, earned }) => {
+    const pct = Math.min(100, (days / 30) * 100);
+    return `<div class="badge-card-sm ${earned ? 'earned super' : ''}">
+      <div class="badge-medal-sm">${earned ? '🔥' : '🔒'}</div>
+      <div class="badge-name-sm">${action.emoji} ${action.zh}</div>
+      <div class="badge-progress-bar-sm"><div class="badge-progress-fill" style="width:${pct}%"></div></div>
+      <div class="badge-progress-text-sm">${earned ? '已激活' : days + '/30天'}</div>
+    </div>`;
   }).join('');
 }
 

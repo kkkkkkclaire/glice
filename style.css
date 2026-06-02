@@ -469,19 +469,259 @@ body::before {
 .report-stat .big-num { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; color: var(--accent); }
 .report-stat .label { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
 
-.medal-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.medal-item {
-  text-align: center; padding: var(--sp-md) var(--sp-sm);
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--r-md); transition: all 0.2s; box-shadow: var(--shadow-sm);
+/* ─── Hero Stats Card (Ice Time + Ice Days) ─── */
+.hero-stats-card {
+  background: linear-gradient(135deg, #A1D3FF 0%, #68B0EB 50%, #B39DDB 100%);
+  border-radius: 18px;
+  padding: 22px 20px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  color: white;
+  box-shadow: 0 4px 18px rgba(59, 159, 227, 0.28);
+  position: relative;
+  overflow: hidden;
 }
-.medal-item.earned { border-color: var(--mastery-mastered); background: #FAF5FF; }
-.medal-item .medal-icon { font-size: 1.6rem; filter: grayscale(1) opacity(0.25); }
-.medal-item.earned .medal-icon { filter: none; animation: shimmer 2.5s ease infinite; }
-@keyframes shimmer { 0%,100% { transform: scale(1); } 50% { transform: scale(1.08); } }
-.medal-item .medal-name { font-size: 0.65rem; color: var(--text-muted); margin-top: 3px; line-height: 1.3; }
-.medal-item.earned .medal-name { color: var(--text-secondary); }
-.medal-item .medal-progress { font-size: 0.58rem; color: var(--text-muted); margin-top: 2px; }
+.hero-stats-card::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  left: -20%;
+  width: 60%;
+  height: 140%;
+  background: radial-gradient(ellipse, rgba(255,255,255,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 1;
+}
+.hero-stat-icon {
+  font-size: 1.8rem;
+  background: rgba(255,255,255,0.2);
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+.hero-stat-info {
+  display: flex;
+  flex-direction: column;
+}
+.hero-stat-label {
+  font-size: 0.78rem;
+  opacity: 0.88;
+  margin-bottom: 2px;
+}
+.hero-stat-value {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+.hero-stat-divider {
+  width: 1px;
+  height: 44px;
+  background: rgba(255,255,255,0.3);
+  z-index: 1;
+}
+
+/* ─── Badge Section ─── */
+.badge-section {
+  margin-bottom: var(--sp-lg);
+}
+.badge-section-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+  padding: 0 4px;
+}
+.badge-section-desc {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  padding: 0 4px;
+  margin-bottom: 10px;
+}
+
+/* ─── Badge Row (Horizontal Scroll) ─── */
+.badge-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 0 10px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.badge-row::-webkit-scrollbar { display: none; }
+
+/* ─── Badge Card (Large, for Time/Day badges) ─── */
+.badge-card {
+  flex-shrink: 0;
+  width: 128px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 14px 10px 12px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.badge-card.earned {
+  border-color: rgba(179, 157, 219, 0.4);
+  background: linear-gradient(160deg, #FAF5FF 0%, #F3E8FF 100%);
+  box-shadow: 0 2px 12px rgba(179, 157, 219, 0.18);
+}
+.badge-card.earned::after {
+  content: '';
+  position: absolute;
+  top: -30%;
+  right: -30%;
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(circle, rgba(179,157,219,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.badge-medal {
+  font-size: 2rem;
+  margin-bottom: 6px;
+  filter: grayscale(1) opacity(0.3);
+  transition: filter 0.4s, transform 0.4s;
+}
+.badge-card.earned .badge-medal {
+  filter: none;
+  animation: badge-pop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes badge-pop {
+  0% { transform: scale(0.6); opacity: 0.5; }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.badge-name {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+  line-height: 1.3;
+}
+.badge-desc {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  line-height: 1.3;
+}
+.badge-progress-bar {
+  height: 4px;
+  background: rgba(59, 159, 227, 0.08);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.badge-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--mastery-learning), var(--mastery-mastered));
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.badge-card.earned .badge-progress-fill {
+  background: linear-gradient(90deg, #B39DDB, #CE93D8);
+}
+.badge-progress-text {
+  font-size: 0.58rem;
+  color: var(--text-muted);
+}
+.badge-card.earned .badge-progress-text {
+  color: #7E57C2;
+  font-weight: 500;
+}
+
+/* ─── Badge Grid (Muscle Memory) ─── */
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.badge-card-sm {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  padding: 10px 6px 8px;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.25s ease;
+}
+.badge-card-sm.earned {
+  border-color: rgba(79, 195, 247, 0.35);
+  background: linear-gradient(160deg, #E3F7FE 0%, #E3F2FD 100%);
+}
+.badge-card-sm.earned.super {
+  border-color: rgba(255, 138, 80, 0.35);
+  background: linear-gradient(160deg, #FFF3E0 0%, #FFE0B2 100%);
+}
+.badge-medal-sm {
+  font-size: 1.4rem;
+  filter: grayscale(1) opacity(0.25);
+  transition: filter 0.3s;
+  margin-bottom: 4px;
+}
+.badge-card-sm.earned .badge-medal-sm {
+  filter: none;
+  animation: shimmer 2.5s ease infinite;
+}
+@keyframes shimmer { 0%,100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+.badge-name-sm {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  line-height: 1.3;
+  margin-bottom: 6px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.badge-card-sm.earned .badge-name-sm {
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+.badge-progress-bar-sm {
+  height: 3px;
+  background: rgba(59, 159, 227, 0.06);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 0 4px 3px;
+}
+.badge-progress-bar-sm .badge-progress-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--mastery-learning), var(--mastery-mastered));
+  transition: width 0.5s ease;
+}
+.badge-card-sm.earned .badge-progress-bar-sm .badge-progress-fill {
+  background: linear-gradient(90deg, #4FC3F7, #29B6F6);
+}
+.badge-card-sm.earned.super .badge-progress-bar-sm .badge-progress-fill {
+  background: linear-gradient(90deg, #FF8A50, #FF5722);
+}
+.badge-progress-text-sm {
+  font-size: 0.55rem;
+  color: var(--text-muted);
+}
+.badge-card-sm.earned .badge-progress-text-sm {
+  color: #0288D1;
+  font-weight: 500;
+}
+.badge-card-sm.earned.super .badge-progress-text-sm {
+  color: #E64A19;
+  font-weight: 500;
+}
 
 /* ─── Custom Action Editor ─── */
 .add-action-panel {
@@ -717,49 +957,4 @@ body::before {
 .picker-fade-bottom {
   bottom: 0;
   background: linear-gradient(to top, var(--bg-surface) 15%, transparent 100%);
-}
-
-/* Total Time Card */
-.total-time-card {
-  background: linear-gradient(135deg, #A1D3FF 0%, #68B0EB 100%);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  color: white;
-  box-shadow: 0 4px 12px rgba(59, 159, 227, 0.25);
-}
-.total-time-icon {
-  font-size: 2.2rem;
-  background: rgba(255,255,255,0.2);
-  width: 54px;
-  height: 54px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14px;
-}
-.total-time-info {
-  display: flex;
-  flex-direction: column;
-}
-.total-time-label {
-  font-size: 0.9rem;
-  opacity: 0.9;
-  margin-bottom: 4px;
-}
-.total-time-value {
-  font-size: 1.8rem;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-}
-
-.btn-add-action { margin-top: 4px; }
-.medal-wall-title {
-  font-family: var(--font-display);
-  font-weight: 600;
-  margin-bottom: 12px;
-  padding: 0 4px;
 }
