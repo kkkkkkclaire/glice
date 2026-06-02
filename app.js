@@ -637,9 +637,9 @@ function renderAchievements(){
   });
   document.getElementById('report-content').innerHTML=`
     <div class="report-stats">
-      <div class="report-stat"><div class="big-num">${md}</div><div class="label">${isCurrentMonth?'本月':'当月'}上冰天数</div></div>
-      <div class="report-stat"><div class="big-num">${(monthDuration/60).toFixed(1)}</div><div class="label">${isCurrentMonth?'本月':'当月'}上冰(小时)</div></div>
-      <div class="report-stat"><div class="big-num">${newLearnCount}</div><div class="label">${isCurrentMonth?'本月':'当月'}新学</div></div>
+      <div class="report-stat"><div class="big-num">${md}</div><div class="label">上冰天数</div></div>
+      <div class="report-stat"><div class="big-num">${(monthDuration/60).toFixed(1)}</div><div class="label">上冰时长</div></div>
+      <div class="report-stat"><div class="big-num">${newLearnCount}</div><div class="label">新学动作</div></div>
     </div>
     ${topA?`<p style="text-align:center;margin-top:14px;color:var(--text-secondary);font-size:0.82rem">🏆 ${isCurrentMonth?'本月':'当月'}之星：<strong>${topA.emoji} ${topA.zh}</strong>（${top[1]}次）</p>`:`<p style="text-align:center;margin-top:14px;color:var(--text-muted);font-size:0.78rem">${isCurrentMonth?'本月':'当月'}暂无练习记录</p>`}
   `;
@@ -729,7 +729,7 @@ function nextReportMonth() {
 
 let pickerYear = new Date().getFullYear();
 let pickerMonth = new Date().getMonth() + 1;
-const YEAR_VALUES = Array.from({length: 10}, (_, i) => new Date().getFullYear() - 5 + i);
+const YEAR_VALUES = Array.from({length: 2050 - 2020 + 1}, (_, i) => 2020 + i);
 const MONTH_VALUES = Array.from({length: 12}, (_, i) => i + 1);
 
 function openMonthPicker() {
