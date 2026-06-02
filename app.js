@@ -596,12 +596,11 @@ function renderAchievements(){
   const titleEl = document.getElementById('report-title');
   const nextBtn = document.getElementById('report-next-btn');
   if (titleEl && nextBtn) {
+    titleEl.innerHTML = `✨ ${tm}`;
     if (isCurrentMonth) {
-      titleEl.innerHTML = '✨ 本月练习报告';
       nextBtn.style.opacity = '0.3';
       nextBtn.disabled = true;
     } else {
-      titleEl.innerHTML = `✨ ${reportYear}年${reportMonth+1}月报告`;
       nextBtn.style.opacity = '1';
       nextBtn.disabled = false;
     }
